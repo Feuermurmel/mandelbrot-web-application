@@ -21,6 +21,7 @@ struct progress {
 	int pr_curr; // Current, continous progress
 	int pr_next; // Next update check
 	int pr_next_upd; // Next update
+	clock_t time_begin; // Time the process has started
 	clock_t time_next; // Next update
 };
 
@@ -28,7 +29,8 @@ struct progress {
 #define PROGRESS_STEP 10000
 
 inline void progress_init(struct progress * const pr, int pr_end) {
-	pr->time_next = clock();
+	pr->time_begin = clock();
+	pr->time_next = pr->time_begin;
 	pr->pr_curr = 0;
 	pr->pr_next = 0;
 	pr->pr_next_upd = 0;
@@ -43,7 +45,7 @@ inline void progress_update(struct progress * const pr, int pr_add) {
 	if (pr->pr_curr > pr->pr_next) {
 		if (clock() > pr->time_next || pr->pr_curr > pr->pr_next_upd) {
 			fprintf(stderr,
-				CLEAR_LINE "%.1f%% (%d/%d kpx) done ",
+				CLEAR_LINE "%.1f%% (%d/%d kpx) done ...",
 				(double) pr->pr_curr / pr->pr_end * 100,
 				pr->pr_curr / 1000,
 				pr->pr_end / 1000
@@ -58,5 +60,5 @@ inline void progress_update(struct progress * const pr, int pr_add) {
 }
 
 inline void progress_end(struct progress * const pr) {
-	fprintf(stderr, CLEAR_LINE);
+	fprintf(stderr, CLEAR_LINE "Rendered %lld pixels in %.1f seconds.\n", (long long) pr->pr_curr, (double) (clock() - pr->time_begin) / CLOCKS_PER_SEC);
 }
