@@ -32,8 +32,6 @@ struct complex_i {
 	int im;
 };
 
-#define to_range(a, b, c) ((b) < (a) ? (a) : (b) > (c) ? (c) : (b))
-
 #define complex_add(a, b) ((typeof (a)) { (a).re + (b).re, (a).im + (b).im })
 #define complex_minus(a) ((typeof (a)) { -(a).re, -(a).im })
 #define complex_subt(a, b) complex_add(a, complex_minus(b))
@@ -149,28 +147,13 @@ fail:
 	return NULL;
 }
 
-iterations_t * mandelbrot_reference(int const size, struct complex_d const origin, double const pixel_size, iterations_t const max_iterations) {
-	iterations_t * const field = calloc(size * size, sizeof (iterations_t));
-	
-	if (field == NULL)
-		goto fail;
-	
-	for (int i = 0; i < size * size; i += 1)
-		field[i] = point(complex_add(origin, ((struct complex_d) { (i % size) * pixel_size, (i / size) * pixel_size })), max_iterations);
-	
-	return field;
-	
-fail:
-	free(field);
-	
-	return NULL;
-}
-
 struct color {
 	unsigned char __attribute__ ((packed)) r;
 	unsigned char __attribute__ ((packed)) g;
 	unsigned char __attribute__ ((packed)) b;
 };
+
+#define to_range(a, b, c) ((b) < (a) ? (a) : (b) > (c) ? (c) : (b))
 
 struct color * gradient(int num) {
 	struct color * buf = malloc(sizeof (struct color) * (num + 1));
@@ -196,14 +179,15 @@ fail:
 }
 
 int main (int argc, char ** const argv) {
-	if (argc < 4 || argc > 6) {
+	if (argc < 4 || argc > 7) {
 		fprintf(stderr,
-			"Usage: %s <re> <im> <range> [ <size> [ <iter> ] ]\n"
+			"Usage: %s <re> <im> <range> [ <size> [ <iter> [ <grad> ] ] ]\n"
 			"Where:\n"
 			"    <size>: Pixel length of one side of the image square.\n"
 			"    <range>: Pixel length of one side of the image square.\n"
 			"    <re>, <im>: Pixel length of one side of the image square.\n"
-			"    <iter>: Pixel length of one side of the image square.\n",
+			"    <iter>: Pixel length of one side of the image square.\n"
+			"    <grad>: Number of colors in the coloring gradient.\n",
 			argv[0]
 		);
 		return 1;
@@ -218,6 +202,8 @@ int main (int argc, char ** const argv) {
 			size = strtol(argv[4], NULL, 10);
 		if (argc > 5)
 			max_iterations = strtol(argv[5], NULL, 10);
+		if (argc > 6)
+			grad_colors = strtol(argv[6], NULL, 10);
 		
 		pixel_size = strtod(argv[3], NULL) / size;
 		
