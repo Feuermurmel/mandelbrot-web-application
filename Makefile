@@ -14,7 +14,7 @@ install: www
 	@ $(MAKE) -s install-do
 
 .PHONY: install-do
-install-do: www/cache www/mandelbrot.html www/cgi-bin/mandelbrot www/cgi-bin/mandelbrot-bin
+install-do: www/cache www/mandelbrot.html www/jquery-1.3.2.js www/cgi-bin/mandelbrot www/cgi-bin/mandelbrot-bin www/placeholder.png
 
 www/cache:
 	@ echo "MKDIR    $@"
@@ -23,6 +23,14 @@ www/cache:
 	@ chmod a+rwX $@
 
 www/mandelbrot.html: mandelbrot.html
+	@ echo "CP       $^ => $@"
+	@ cp $^ $@
+
+www/jquery-1.3.2.js: jquery-1.3.2.js
+	@ echo "CP       $^ => $@"
+	@ cp $^ $@
+
+www/placeholder.png: placeholder.png
 	@ echo "CP       $^ => $@"
 	@ cp $^ $@
 
