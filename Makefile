@@ -63,7 +63,7 @@ CLEAN_FILES := $(wildcard $(CLEAN_FILES))
 $(PRODUCTS): INPUTS = $(OBJECTS_$@)
 $(PRODUCTS): $$(INPUTS) $(MAKEFILE_LIST)
 	@ echo "LD       $(INPUTS) => $@"
-	@ gcc -o $@ $(INPUTS)
+	@ gcc -lm -o $@ $(INPUTS)
 
 .PHONY: clean
 clean:
