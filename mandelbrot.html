@@ -17,11 +17,11 @@
 				margin: -2px;
 			}
 			
-			.big { width: 256px; height: 256px; }
-			.big.c1 { left: 0px; }
-			.big.c2 { left: 256px; }
-			.big.r1 { top: 0px; }
-			.big.r2 { top: 256px; }
+			.big, .plac { width: 256px; height: 256px; }
+			.big.c1, .plac.c1 { left: 0px; }
+			.big.c2, .plac.c2 { left: 256px; }
+			.big.r1, .plac.r1 { top: 0px; }
+			.big.r2, .plac.r2 { top: 256px; }
 			
 			.small, .zoom { width: 128px; height: 128px; }
 			.small.c1 { left: 0px; }
@@ -172,20 +172,27 @@
 				})
 				
 				$("img.big").load(function() {
-					if ($(this).attr("src") != "placeholder.png")
-						$("img[id^=" + $(this).attr("id") + "].small").each(function () {
-							$(this).attr("src", $(this).attr("src_")).show();
-						});
+					$(this).removeAttr("src_").show();
+					$("img[id^=" + $(this).attr("id") + "].small").each(function () {
+						$(this).attr("src", $(this).attr("src_")).show();
+					});
 				}).each(function () {
-				//	$(this).attr("src", "placeholder.png");
 					$(this).attr("src", $(this).attr("src_"));
 				});
 				
 				$("img.small").hide()
+				
+				setTimeout(function () {
+					$("img.big").each(function () {
+						if ($(this).attr("src_"))
+							$(this).hide()
+					})
+				}, 100)
 			};
 			
 			$(document).ready(function () {
 				Mandelbrot.updateImages();
+				$(".plac").attr("src", "placeholder.png");
 				$(".zoom").click(function () {
 					var x = 0, y = 0;
 					
@@ -201,6 +208,18 @@
 					
 					Mandelbrot.zoom(x, y);
 				});
+				$(".pan.left").click(function () {
+					Mandelbrot.move(-1, 0);
+				});
+				$(".pan.right").click(function () {
+					Mandelbrot.move(1, 0);
+				});
+				$(".pan.up").click(function () {
+					Mandelbrot.move(0, -1);
+				});
+				$(".pan.down").click(function () {
+					Mandelbrot.move(0, 1);
+				});
 				$(document).keypress(function (e) {
 					if (e.which != 45)
 						return true;
@@ -211,6 +230,11 @@
 		</script>
 	</head>
 	<body>
+		<img class="plac r1 c1" />
+		<img class="plac r1 c2" />
+		<img class="plac r2 c1" />
+		<img class="plac r2 c2" />
+		
 		<img class="big r1 c1" id="a" />
 		<img class="big r1 c2" id="b" />
 		<img class="big r2 c1" id="c" />
