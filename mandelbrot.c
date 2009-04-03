@@ -224,7 +224,9 @@ int main (int argc, char ** const argv) {
 				if (field[i] == (iterations_t) -1)
 					image[i] = grad[grad_colors];
 				else
-					image[i] = grad[field[i] % grad_colors];
+					image[i] = grad[(int) ((sqrt(1. + (double) field[i] / 10.) * grad_colors) - 1.) % grad_colors];
+				//	image[i] = grad[field[i] % grad_colors];
+				//	image[i] = grad[(int) (sqrt((double) field[i] / 25) * grad_colors) % grad_colors];
 			}
 			
 		//	write(1, field, sizeof (iterations_t) * size * size);
