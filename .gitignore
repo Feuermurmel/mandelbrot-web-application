@@ -1,4 +1,3 @@
+.scons*
 *.o
-Makefile.deps
 /mandelbrot
-/www

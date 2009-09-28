@@ -38,7 +38,7 @@ if echo "$PATH_INFO" | grep -qE "/([abcd])+\.png"; then
 		IM=$(echo "$INFO" | cut -f 2)
 		SCALE=$(echo "$INFO" | cut -f 3)
 		
-		./mandelbrot-bin "$RE" "$IM" "$SCALE" 256 | convert -size "256x256" -depth 8 "RGB:" "$CACHE"
+		./mandelbrot-bin "$RE" "$IM" "$SCALE" 256 2> /dev/null | convert -size "256x256" -depth 8 "RGB:" "$CACHE"
 	fi
 	
 	echo "Location: $SCRIPT_DIR/$CACHE"

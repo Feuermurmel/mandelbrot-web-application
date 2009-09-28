@@ -1,24 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <math.h>
 #include <time.h>
 #include <signal.h>
 
-#include "configuration.h"
-
-#ifdef CONFIGURATION_PROGRESS_NONE
-#include "progress-none.c"
-#endif
-#ifdef CONFIGURATION_PROGRESS_SIMPLE
-#include "progress-simple.c"
-#endif
-#ifdef CONFIGURATION_PROGRESS_ETA
-#include "progress-eta.c"
-#endif
-
 #define until(a) while (!(a))
+
+/* Configurations for mandelbrot application */
+
+/* Iteration count type */
+#define CONFIGURATION_ITERATION_TYPE uint16_t
+
+/* Default output image square dimensions */
+#define CONFIGURATION_DFAULT_IMAGE_SIZE 512
+
+/* Defalt maximum iteration count */
+#define CONFIGURATION_DFAULT_MAX_INTERATIONS 65000
+
+/* Defalt number of colors used in the colorizing gradient. */
+#define CONFIGURATION_DFAULT_GRADIENT_COLORS 25
 
 typedef CONFIGURATION_ITERATION_TYPE iterations_t;
 
@@ -70,10 +73,6 @@ iterations_t * mandelbrot(int const size, struct complex_d const origin, double 
 	struct complex_i const dir_step[] = { { 1, 0 }, { 0, -1 }, { -1, 0 }, { 0, 1 } };
 	iterations_t n_region = point(origin, max_iterations);
 	struct complex_i i;
-	struct progress pr;
-	
-	progress_init(&pr, size * size);
-	progress_update(&pr, 1);
 	
 	if (border == NULL || field == NULL)
 		goto fail;
@@ -86,8 +85,6 @@ iterations_t * mandelbrot(int const size, struct complex_d const origin, double 
 				n_region = field[size * i.im + i.re];
 			else if (field[size * i.im + i.re] == 0) {
 				field[size * i.im + i.re] = n_region;
-				
-				progress_update(&pr, 1);
 			} else {
 				struct complex_i i_start = complex_subt(i, ((struct complex_i) { 1, 0 }));
 				enum direction dir = direction_down;
@@ -115,8 +112,6 @@ iterations_t * mandelbrot(int const size, struct complex_d const origin, double 
 					if (0 <= i.re && i.re < size && 0 <= i.im && i.im < size) {
 						if (field[size * i.im + i.re] == 0) {
 							field[size * i.im + i.re] = point(complex_add(origin, complex_scale(((struct complex_d) { i.re, i.im }), pixel_size)), max_iterations);
-							
-							progress_update(&pr, 1);
 						}
 						
 						if (field[size * i.im + i.re] != n_region)
@@ -136,7 +131,6 @@ iterations_t * mandelbrot(int const size, struct complex_d const origin, double 
 		}
 	
 	free(border);
-	progress_end(&pr);
 	
 	return field;
 
@@ -148,9 +142,7 @@ fail:
 }
 
 struct color {
-	unsigned char __attribute__ ((packed)) r;
-	unsigned char __attribute__ ((packed)) g;
-	unsigned char __attribute__ ((packed)) b;
+	uint8_t r, g, b;
 };
 
 #define to_range(a, b, c) ((b) < (a) ? (a) : (b) > (c) ? (c) : (b))
