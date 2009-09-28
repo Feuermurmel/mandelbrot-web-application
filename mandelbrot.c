@@ -175,10 +175,10 @@ int main (int argc, char ** const argv) {
 		fprintf(stderr,
 			"Usage: %s <re> <im> <range> [ <size> [ <iter> [ <grad> ] ] ]\n"
 			"Where:\n"
+			"    <re>, <im>: Coordinates of the upper left corner.\n"
+			"    <range>: Coordinate range to include in both directions.\n"
 			"    <size>: Pixel length of one side of the image square.\n"
-			"    <range>: Pixel length of one side of the image square.\n"
-			"    <re>, <im>: Pixel length of one side of the image square.\n"
-			"    <iter>: Pixel length of one side of the image square.\n"
+			"    <iter>: Maximum number of iterations.\n"
 			"    <grad>: Number of colors in the coloring gradient.\n",
 			argv[0]
 		);
