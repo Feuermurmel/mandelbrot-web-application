@@ -133,6 +133,7 @@ Mandelbrot2 = function () {
 					var after = visible.xmin <= ix && ix < visible.xmax && visible.ymin <= iy && iy < visible.ymax;
 					
 					if (before != after) {
+						// TODO: Some magic needed here to check wether we're outside of the fractal.
 						var name = indexName({
 							"x": indexAdd(that.index.x, ix),
 							"y": indexAdd(that.index.y, iy)
