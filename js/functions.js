@@ -50,7 +50,7 @@ function createElement(tag, attrs, contents) {
 Mandelbrot2 = function () {
 	var module = { };
 	
-	tileSize = 256; // Pixel size of one tile.
+	tileSize = 256/2; // Pixel size of one tile.
 	
 	function indexFixup(ind) {
 		var last = ind.pop();
@@ -102,7 +102,7 @@ Mandelbrot2 = function () {
 		
 		that.visible = { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }; // Number of visible tiles in each direction relative to the index.
 		that.offset = { "x": 0, "y": 0 }; // Pixel offset of the top left tile relative to the viewer div.
-		that.index = { "x": [0, 0, 0], "y": [0, 0, 0] }; // Index of the top left tile.
+		that.index = { "x": [0, 0, 0, 0, 0, 0], "y": [0, 0, 0, 0, 0, 0] }; // Index of the top left tile.
 		that.viewer = elem;
 		that.tiles = { }; // Map for visible tiles from tile names to HTMLElements.
 		that.object = object; // self
@@ -151,7 +151,12 @@ Mandelbrot2 = function () {
 								"left": ix * tileSize,
 								"top": iy * tileSize,
 								"width": tileSize,
-								"height": tileSize
+								"height": tileSize,
+								"opacity": 0
+							});
+							img.load(function () {
+							//	$(this).css({ "opacity": 1 });
+								$(this).animate({ "opacity": 1 }, 400);
 							});
 							img.attr("src", "mandelbrot.sh/" + name + ".png");
 							$(that.viewer).children().append(img);
