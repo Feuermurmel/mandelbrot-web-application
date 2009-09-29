@@ -1,6 +1,9 @@
 div.mandelbrot {
 	overflow: hidden;
 }
+div.mandelbrot > div {
+	position: absolute;
+}
 
 div img { position: absolute; padding: 0px; margin: 0px; }
 

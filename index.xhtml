@@ -28,9 +28,48 @@
 		<script src="js/functions.js" />
 		<script type="text/javascript"><![CDATA[
 			$(function () {
-				m = Mandelbrot2.create($("#viewer")[0])
-				$(window).resize(m.update);
+				m = Mandelbrot2.create($("#viewer")[0]);
+				$(window).resize(m.resized);
+				
+			//	testMoveInit();
 			});
+			
+		/*	function testMoveInit() {
+				var elems = [];
+				var delta = 0;
+				var state = { "time": 0 };
+				
+				$("#viewer img").map(function () {
+			//	$("#viewer").map(function () {
+					elems.push({
+						"elem": this,
+						"top": $(this).position().top
+					});
+				});
+				
+				testMove = function (delta) {
+					elems.map(function (v) {
+						v.elem.style.top = (v.top + delta) + "px";
+					});
+				};
+				
+				testMoveStart = function () {
+					$(document).everyTime(1, function () {
+						delta += 10;
+						delta = delta % 50
+						testMove(delta);
+						
+						var timeNew = (new Date()).getTime();
+						console.log(timeNew - state.time);
+						state.time = timeNew;
+					});
+				};
+			};
+			
+			function testMoveAnimate() {
+				$("#viewer").animate({ "top":500 }, 10000);
+			};
+		*/
 		]]></script>
 	</head>
 	<body>

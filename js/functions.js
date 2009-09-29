@@ -17,8 +17,40 @@ function modulo(num, div) {
 	return round(num - Math.floor(num / div) * div);
 }
 
+function getSearchArgs() {
+	var parts = document.location.search.slice(1).split("&");
+	var result = { };
+	
+	$.each(parts, function () {
+		var pair = this.split("=");
+		
+		if (pair.length == 1)
+			result[pair[0]] = true;
+		else
+			result[pair[0]] = pair.slice(1).join("=");
+	})
+	
+	return result;
+};
+
+function createElement(tag, attrs, contents) {
+	var elem = $(document.createElement(tag));
+	
+	if (attrs)
+		elem.attr(attrs);
+	
+	if (contents)
+		$.each(contents, function () {
+			elem.append($(this).clone());
+		});
+	
+	return elem[0];
+}
+
 Mandelbrot2 = function () {
 	var module = { };
+	
+	tileSize = 256; // Pixel size of one tile.
 	
 	function indexFixup(ind) {
 		var last = ind.pop();
@@ -34,7 +66,8 @@ Mandelbrot2 = function () {
 	}
 	
 	function indexAdd(ind, num) {
-		ind = object(ind);
+		// ind = object(ind); ***leakage
+		ind = ind.map(function (v) { return v; });
 		
 		if (ind.length > 0) {
 			ind[ind.length - 1] += num;
@@ -44,7 +77,7 @@ Mandelbrot2 = function () {
 		}
 	};
 	
-	function indexToPath(ind) {
+	function indexName(ind) {
 		var replace = [["a", "b"], ["c", "d"]]
 		var path = "";
 		
@@ -54,183 +87,111 @@ Mandelbrot2 = function () {
 		return path;
 	}
 	
+	function indexToString(ind) {
+		return ind.map(function (v) {
+			return ["0", "1"][v];
+		}).join("");
+	}
+	
 //	console.log(indexAdd([0, 0, 0], 2));
+//	console.log(indexToString([1, 0, 1]));
 	
 	module.create = function (elem) {
 		var object = { };
 		var that = { };
 		
-		that.tileSize = 256; // Pixel size of one tile.
-	//	that.visible = { "x": 0, "y": 0 }; // Number of visible tiles.
+		that.visible = { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }; // Number of visible tiles in each direction relative to the index.
 		that.offset = { "x": 0, "y": 0 }; // Pixel offset of the top left tile relative to the viewer div.
-		that.element = elem; // The viewer div.
-		that.index = { "x": [0, 0], "y": [0, 0] }; // Index of the top left tile.
-		that.object = object;
+		that.index = { "x": [0, 0, 0], "y": [0, 0, 0] }; // Index of the top left tile.
+		that.viewer = elem;
+		that.tiles = { }; // Map for visible tiles from tile names to HTMLElements.
+		that.object = object; // self
 		
-		$(that.element).addClass("mandelbrot");
+		$(that.viewer).addClass("mandelbrot");
+		$(that.viewer).append(document.createElement("div"));
 		
-		object.update = function () {
+		// Adds new tiles and removes those, which aren't visible anymore.
+		function updateVisible() {
 			var visible = {
-				"x": Math.ceil($(that.element).width() / that.tileSize),
-				"y": Math.ceil($(that.element).height() / that.tileSize)
-			}
-			var elems = $("img", that.element);
+				"xmin": -Math.ceil(that.offset.x / tileSize),
+				"ymin": -Math.ceil(that.offset.y / tileSize),
+				"xmax": Math.ceil(($(that.viewer).width() - that.offset.x) / tileSize),
+				"ymax": Math.ceil(($(that.viewer).height() - that.offset.y) / tileSize),
+			};
 			
-			for (var iy = 0; iy < visible.y; iy += 1) {
-				for (var ix = 0; ix < visible.x; ix += 1) {
-					var img = $(new Image());
-					var path = indexToPath({
-						"x": indexAdd(that.index.x, ix),
-						"y": indexAdd(that.index.y, iy)
-					});
+			// TODO: Check that visible != that.visible
+			var xmin = Math.min(that.visible.xmin, visible.xmin);
+			var ymin = Math.min(that.visible.ymin, visible.ymin);
+			var xmax = Math.max(that.visible.xmax, visible.xmax);
+			var ymax = Math.max(that.visible.ymax, visible.ymax);
+			
+			console.log([xmin, ymin, xmax, ymax]);
+			
+			for (var iy = ymin; iy < ymax; iy += 1) {
+				for (var ix = xmin; ix < xmax; ix += 1) {
+					var before = that.visible.xmin <= ix && ix < that.visible.xmax && that.visible.ymin <= iy && iy < that.visible.ymax;
+					var after = visible.xmin <= ix && ix < visible.xmax && visible.ymin <= iy && iy < visible.ymax;
 					
-					var id = "mandelbrot_" + path;
-					var elem = $("#" + id, that.element)[0];
-					
-					if (elem) {
-						elems = elems.not(elem);
-					} else {
-						img.css({
-							"left": ix * that.tileSize,
-							"top": iy * that.tileSize,
-							"width": that.tileSize,
-							"height": that.tileSize
+					if (before != after) {
+						var name = indexName({
+							"x": indexAdd(that.index.x, ix),
+							"y": indexAdd(that.index.y, iy)
 						});
-						img.attr("src", "mandelbrot.sh/" + path + ".png");
-						img.attr("id", id);
-						$(that.element).append(img);
-						console.log("created tile: " + id);
+						
+						if (before) {
+							$(that.tiles[name]).remove();
+							delete that.tiles[name];
+							
+							console.log("removed: " + name);
+						} else if (after) {
+							var img = $(new Image());
+							
+							img.css({
+								"left": ix * tileSize,
+								"top": iy * tileSize,
+								"width": tileSize,
+								"height": tileSize
+							});
+							img.attr("src", "mandelbrot.sh/" + name + ".png");
+							$(that.viewer).children().append(img);
+							that.tiles[name] = img;
+							
+							console.log("added: " + name);
+						}
 					}
 				};
 			};
 			
-			elems.remove();
+			that.visible = visible;
 		};
 		
-		$(elem).disableTextSelect();
-		object.update();
+		// Should be called when the size of the viewer has chanegd.
+		object.resized = function () {
+			updateVisible();
+		};
+		
+		// Moves the content of the vievert by the amount in pixels.
+		object.move = function (x, y) {
+		
+		};
+		
+		$(that.viewer).disableTextSelect();
+		$(that.viewer).drag(function () { }, function (evt) {
+			console.log([evt.offsetX, evt.offsetY]);
+			$(that.viewer).children().css({
+				left: that.offset.x + evt.offsetX,
+				top: that.offset.y + evt.offsetY
+			});
+		}, function (evt) {
+			that.offset.x += evt.offsetX;
+			that.offset.y += evt.offsetY;
+			updateVisible();
+		});
+		
+		updateVisible();
 		
 		return object;
 	};
 	
 	return module;
 } ();
-
-
-Mandelbrot = {};
-
-Mandelbrot.position = { x:"0", y:"0" };
-
-Mandelbrot.movePos = function (pos, dir) {
-	var replace;
-	
-	if (typeof dir == "number") {
-		while (dir != 0) {
-			pos = this.movePos(pos, dir < 0);
-			dir -= sign(dir);
-		}
-	} else {
-		if (dir)
-			replace = [1, 0];
-		else
-			replace = [0, 1];
-		
-		var p = pos.lastIndexOf(replace[0]);
-		
-		if (p > -1)
-			pos = pos.slice(0, p) + replace[1] + pos.slice(p + 1).replace(RegExp(replace[1], "g"), replace[0]);
-	}
-	
-	return pos;
-};
-
-Mandelbrot.move = function (x, y) {
-	this.position = {
-		"x":this.movePos(this.position.x, x),
-		"y":this.movePos(this.position.y, y)
-	};
-	this.updateImages();
-}
-
-Mandelbrot.zoomPos = function (pos, x, y) {
-	return {
-		"x":this.movePos(pos.x + "0", x),
-		"y":this.movePos(pos.y + "0", y)
-	};
-}
-
-Mandelbrot.zoom = function (x, y) {
-	this.position = this.zoomPos(this.position, x, y);
-	this.updateImages();
-}
-
-Mandelbrot.zoomOut = function () {
-	this.position = {
-		"x":this.position.x.slice(0, -1),
-		"y":this.position.y.slice(0, -1)
-	};
-	this.updateImages();
-}
-
-Mandelbrot.toPath = function (pos) {
-	var replace = {
-		"0":{ "0":"a", "1":"b" },
-		"1":{ "0":"c", "1":"d" }
-	}
-	var path = "";
-	
-	for (var i = 0; i < pos.x.length; i += 1)
-		path += replace[pos.y.charAt(i)][pos.x.charAt(i)];
-	
-	return "mandelbrot.sh/" + path + ".png";
-};
-
-Mandelbrot.updateImages = function (pos) {
-	var that = this;
-	
-	if (! pos)
-		pos = this.position;
-	
-	$("img[id]").each(function () {
-		var pos2 = object(pos);
-		var s = $(this).attr("id");
-		var first = true;
-		
-		for (var i in s.split("")) {
-			var si = s[i];
-			
-			if (first) {
-				first = false;
-			} else {
-				pos2.x = pos2.x + "0";
-				pos2.y = pos2.y + "0";
-			}
-			
-			if (si == "b" || si == "d")
-				pos2.x = that.movePos(pos2.x)
-			
-			if (si == "c" || si == "d")
-				pos2.y = that.movePos(pos2.y)
-		}
-		
-		$(this).attr("src_", that.toPath(pos2));
-	})
-	
-	$("img.big").load(function() {
-		$(this).removeAttr("src_").show();
-		$("img[id^=" + $(this).attr("id") + "].small").each(function () {
-			$(this).attr("src", $(this).attr("src_")).show();
-		});
-	}).each(function () {
-		$(this).attr("src", $(this).attr("src_"));
-	});
-	
-	$("img.small").hide()
-	
-	setTimeout(function () {
-		$("img.big").each(function () {
-			if ($(this).attr("src_"))
-				$(this).hide()
-		})
-	}, 100)
-};
