@@ -1,17 +1,121 @@
-object = function (obj) {
+function object(obj) {
 	function F() {}
 	F.prototype = obj;
 	return new F();
 };
 
-sign = function (num) {
+function sign(num) {
 	if (num > 0)
 		return 1;
 	else if (num < 0)
 		return -1;
 	else
 		return 0;
+};
+
+function modulo(num, div) {
+	return round(num - Math.floor(num / div) * div);
 }
+
+Mandelbrot2 = function () {
+	var module = { };
+	
+	function indexFixup(ind) {
+		var last = ind.pop();
+		
+		if (last != 0 && last != 1 && ind.length > 0) {
+			ind[ind.length - 1] += Math.floor(last / 2);
+			ind = indexFixup(ind);
+		}
+		
+		ind.push(Math.abs(last % 2));
+		
+		return ind;
+	}
+	
+	function indexAdd(ind, num) {
+		ind = object(ind);
+		
+		if (ind.length > 0) {
+			ind[ind.length - 1] += num;
+			return indexFixup(ind);
+		} else {
+			return ind;
+		}
+	};
+	
+	function indexToPath(ind) {
+		var replace = [["a", "b"], ["c", "d"]]
+		var path = "";
+		
+		for (var i = 0; i < ind.x.length; i += 1)
+			path += replace[ind.y[i]][ind.x[i]];
+		
+		return path;
+	}
+	
+//	console.log(indexAdd([0, 0, 0], 2));
+	
+	module.create = function (elem) {
+		var object = { };
+		var that = { };
+		
+		that.tileSize = 256; // Pixel size of one tile.
+	//	that.visible = { "x": 0, "y": 0 }; // Number of visible tiles.
+		that.offset = { "x": 0, "y": 0 }; // Pixel offset of the top left tile relative to the viewer div.
+		that.element = elem; // The viewer div.
+		that.index = { "x": [0, 0], "y": [0, 0] }; // Index of the top left tile.
+		that.object = object;
+		
+		$(that.element).addClass("mandelbrot");
+		
+		object.update = function () {
+			var visible = {
+				"x": Math.ceil($(that.element).width() / that.tileSize),
+				"y": Math.ceil($(that.element).height() / that.tileSize)
+			}
+			var elems = $("img", that.element);
+			
+			for (var iy = 0; iy < visible.y; iy += 1) {
+				for (var ix = 0; ix < visible.x; ix += 1) {
+					var img = $(new Image());
+					var path = indexToPath({
+						"x": indexAdd(that.index.x, ix),
+						"y": indexAdd(that.index.y, iy)
+					});
+					
+					var id = "mandelbrot_" + path;
+					var elem = $("#" + id, that.element)[0];
+					
+					if (elem) {
+						elems = elems.not(elem);
+					} else {
+						img.css({
+							"left": ix * that.tileSize,
+							"top": iy * that.tileSize,
+							"width": that.tileSize,
+							"height": that.tileSize
+						});
+						img.attr("src", "mandelbrot.sh/" + path + ".png");
+						img.attr("id", id);
+						$(that.element).append(img);
+						console.log("created tile: " + id);
+					}
+				};
+			};
+			
+			elems.remove();
+		};
+		
+		$(elem).disableTextSelect();
+		object.update();
+		
+		return object;
+	};
+	
+	return module;
+} ();
+
 
 Mandelbrot = {};
 
@@ -40,7 +144,6 @@ Mandelbrot.movePos = function (pos, dir) {
 	return pos;
 };
 
-/* dir: 0: left, 1: right, 2: up, 3: down */
 Mandelbrot.move = function (x, y) {
 	this.position = {
 		"x":this.movePos(this.position.x, x),

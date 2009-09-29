@@ -1,0 +1,7 @@
+div.mandelbrot {
+	overflow: hidden;
+}
+
+div img { position: absolute; padding: 0px; margin: 0px; }
+
+.link { color: blue; text-decoration: underline; }
