@@ -115,34 +115,44 @@ Mandelbrot2 = function () {
 	
 	module.create = function (elem) {
 		var object = { };
-		var that = { };
 		
-		that.visible = { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }; // Number of visible tiles in each direction relative to the index.
-		that.offset = { "x": 0, "y": 0 }; // Pixel offset of the top left tile relative to the viewer div.
-		that.index = { "x": [0, 0, 0], "y": [0, 0, 0] }; // Index of the top left tile.
-		that.viewer = elem;
-		that.tiles = { }; // Map for visible tiles from tile names to HTMLElements.
-		that.object = object; // self
+		var that = {
+			"visible": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }, // Number of visible tiles in each direction relative to the index.
+			"offset": { "x": 0, "y": 0 }, // Pixel offset of the top left tile relative to the viewer div.
+			"index": { "x": [0, 0, 0, 0], "y": [0, 0, 0, 0] }, // Index of the top left tile.
+			"viewer": {
+				"element": elem,
+				"size": { "x": 0, "y": 0 }
+			},
+			"tiles": { }, // Map for visible tiles from tile names to HTMLElements.
+			"object": object // self
+		};
+
 		
-		$(that.viewer).addClass("mandelbrot");
-		$(that.viewer).append(document.createElement("div"));
+		$(that.viewer.element).addClass("mandelbrot");
+		$(that.viewer.element).append(document.createElement("div"));
 		
-		function setOffset(off) {
-			that.offset = off;
+		function setOffset(x, y) {
+			that.offset.x = Math.floor(x);
+			that.offset.y = Math.floor(y);
 			
-			$(that.viewer).children().css({
+			$(that.viewer.element).children().css({
 				"left": that.offset.x,
 				"top": that.offset.y
 			});
-		}
+		};
+		
+		function moveOffset(x, y) {
+			setOffset(that.offset.x + x, that.offset.y + y);
+		};
 		
 		// Adds new tiles and removes those, which aren't visible anymore.
 		function updateVisible() {
 			var visible = {
 				"xmin": -Math.ceil(that.offset.x / tileSize),
 				"ymin": -Math.ceil(that.offset.y / tileSize),
-				"xmax": Math.ceil(($(that.viewer).width() - that.offset.x) / tileSize),
-				"ymax": Math.ceil(($(that.viewer).height() - that.offset.y) / tileSize),
+				"xmax": Math.ceil((that.viewer.size.x - that.offset.x) / tileSize),
+				"ymax": Math.ceil((that.viewer.size.y - that.offset.y) / tileSize),
 			};
 			
 			// TODO: Check that visible != that.visible
@@ -151,7 +161,7 @@ Mandelbrot2 = function () {
 			var xmax = Math.max(that.visible.xmax, visible.xmax);
 			var ymax = Math.max(that.visible.ymax, visible.ymax);
 			
-			console.log([xmin, ymin, xmax, ymax]);
+		//	console.log([xmin, ymin, xmax, ymax]);
 			
 			for (var iy = ymin; iy < ymax; iy += 1) {
 				for (var ix = xmin; ix < xmax; ix += 1) {
@@ -169,7 +179,7 @@ Mandelbrot2 = function () {
 							$(that.tiles[name]).remove();
 							delete that.tiles[name];
 							
-							console.log("removed: " + name);
+						//	console.log("removed: " + name);
 						} else if (after) {
 							var img = $(new Image());
 							
@@ -185,10 +195,10 @@ Mandelbrot2 = function () {
 								$(this).animate({ "opacity": 1 }, 400);
 							});
 							img.attr("src", "mandelbrot.sh/" + name + ".png");
-							$(that.viewer).children().append(img);
+							$(that.viewer.element).children().append(img);
 							that.tiles[name] = img;
 							
-							console.log("added: " + name);
+						//	console.log("added: " + name);
 						}
 					}
 				};
@@ -197,8 +207,17 @@ Mandelbrot2 = function () {
 			that.visible = visible;
 		};
 		
-		// Should be called when the size of the viewer has chanegd.
+		function clearVisible() {
+			that.visible = { "xmin": 0, "ymin": 0, "xmax": -1, "ymax": -1 };
+			$(that.viewer.element).children().empty();
+		};
+		
+		// This should be called, whenever the viewer div changed it's size.
 		object.resized = function () {
+			that.viewer.size = {
+				"x": $(that.viewer.element).width(),
+				"y": $(that.viewer.element).height()
+			};
 			updateVisible();
 		};
 		
@@ -213,47 +232,60 @@ Mandelbrot2 = function () {
 				"y": Math.floor(that.offset.y / tileSize)
 			};
 			
-			setOffset({
-				"x": (that.offset.x - indexOffset.x * tileSize) * 2,
-				"y": (that.offset.y - indexOffset.y * tileSize) * 2
-			});
+			setOffset((that.offset.x + indexOffset.x * tileSize) * 2, (that.offset.y + indexOffset.y * tileSize) * 2);
 			
 			that.index.x = indexAdd(that.index.x, indexOffset.x);
 			that.index.y = indexAdd(that.index.y, indexOffset.y);
 			that.index.x.push(0);
 			that.index.y.push(0);
 			
-			that.visible = { "xmin": 0, "ymin": 0, "xmax": -1, "ymax": -1 };
-			$(that.viewer).children().empty();
-		}
+			clearVisible();
+			
+			console.log([that.index.x, that.index.y]);
+			console.log([that.offset.x, that.offset.y]);
+		};
+		
+		// Zooms out by a factor of two around the origin of the viewer.
+		function zoomOut() {
+			var indexOffset = {
+				"x": that.index.x.pop(),
+				"y": that.index.y.pop()
+			};
+			
+			setOffset((that.offset.x - indexOffset.x * tileSize) / 2, (that.offset.y - indexOffset.y * tileSize) / 2);
+			
+			clearVisible();
+		};
 		
 		// Zooms in on positive aguments and out on negative arguments.
-		object.zoom = function (z) {
-			if (z > 0) {
+		object.zoom = function (dir) {
+			if (dir > 0) {
 				zoomIn();
-			} else if (z < 0) {
-				
+				moveOffset(-that.viewer.size.x / 2, -that.viewer.size.y / 2);
+			} else if (dir < 0) {
+				moveOffset(that.viewer.size.x / 2, that.viewer.size.y / 2);
+				zoomOut();
 			}
 			
 			updateVisible();
-		}
+		};
 		
-		$(that.viewer).disableTextSelect();
-		$(that.viewer).drag(function () {
+		// setup
+		$(that.viewer.element).disableTextSelect();
+		$(that.viewer.element).drag(function () {
 			that.dragStartOffset = {
 				"x": that.offset.x,
 				"y": that.offset.y
 			};
 		}, function (evt) {
-			setOffset({
-				"x": that.dragStartOffset.x + evt.offsetX,
-				"y": that.dragStartOffset.y + evt.offsetY
-			});
+			setOffset(that.dragStartOffset.x + evt.offsetX, that.dragStartOffset.y + evt.offsetY);
 		}, function (evt) {
 			delete that.dragStartOffset;
 			updateVisible();
 		});
 		
+		// initialisation
+		object.resized();
 		updateVisible();
 		
 		return object;
