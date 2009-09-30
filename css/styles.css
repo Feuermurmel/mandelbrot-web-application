@@ -30,14 +30,13 @@ body {
 	margin: 0px;
 }
 
-/* controls */
-.controls {
+.mandelbrot .controls {
 	position: absolute;
 	left: 5px;
 	top: 5px;
 }
 
-.controls > div {
+.mandelbrot .controls > div {
 	position: absolute;
 	width: 32px;
 	height: 32px;
@@ -45,22 +44,22 @@ body {
 	background-image: url(../img/zoom.png);
 }
 
-.controls .minus {
+.mandelbrot .controls .minus {
 	left: 0px;
 	top: 0px;
 	background-position: 32px 0px;
 }
 
-.controls .minus:hover {
+.mandelbrot .controls .minus:hover {
 	background-position: 32px 32px;
 }
 
-.controls .plus {
+.mandelbrot .controls .plus {
 	left: 20px;
 	top: 0px;
 	background-position: 0px 0px;
 }
 
-.controls .plus:hover {
+.mandelbrot .controls .plus:hover {
 	background-position: 0px 32px;
 }

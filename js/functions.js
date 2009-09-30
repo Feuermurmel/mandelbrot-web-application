@@ -119,11 +119,11 @@ Mandelbrot2 = function () {
 		// create dom elements
 		$(element).append([
 			createElement("div", { "class": "mandelbrot" }, [
-				createElement("div", { "class": "wrapper" })
-			]),
-			createElement("div", { "class": "controls" }, [
-				createElement("div", { "class": "minus" }),
-				createElement("div", { "class": "plus" })
+				createElement("div", { "class": "wrapper" }),
+				createElement("div", { "class": "controls" }, [
+					createElement("div", { "class": "minus" }),
+					createElement("div", { "class": "plus" })
+				])
 			])
 		]);
 		
@@ -235,8 +235,8 @@ Mandelbrot2 = function () {
 		// Zooms in by a factor of two around the origin of the viewer.
 		function zoomIn() {
 			var indexOffset = {
-				"x": Math.floor(that.offset.x / tileSize),
-				"y": Math.floor(that.offset.y / tileSize)
+				"x": -Math.floor(that.offset.x / tileSize),
+				"y": -Math.floor(that.offset.y / tileSize)
 			};
 			
 			setOffset((that.offset.x + indexOffset.x * tileSize) * 2, (that.offset.y + indexOffset.y * tileSize) * 2);
