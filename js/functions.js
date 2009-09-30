@@ -14,7 +14,7 @@ function sign(num) {
 };
 
 function modulo(num, div) {
-	return round(num - Math.floor(num / div) * div);
+	return num - Math.floor(num / div) * div;
 }
 
 function getSearchArgs() {
@@ -93,6 +93,23 @@ Mandelbrot2 = function () {
 		}).join("");
 	}
 	
+	function indexToNumber(ind) {
+		function f(i) {
+			if (i == 0) {
+				return 0;
+			} else {
+				return ind[i - 1] + f(i - 1) * 2;
+			}
+		}
+		
+		return f(ind.length);
+	}
+	
+//	console.log(indexToNumber([0, 0, 0, 1]));
+//	console.log(indexToNumber([0, 0, 1, 0]));
+//	console.log(indexToNumber([0, 1, 0, 0]));
+//	console.log(indexToNumber([1, 0, 0, 0]));
+	
 //	console.log(indexAdd([0, 0, 0], 2));
 //	console.log(indexToString([1, 0, 1]));
 	
@@ -102,13 +119,22 @@ Mandelbrot2 = function () {
 		
 		that.visible = { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }; // Number of visible tiles in each direction relative to the index.
 		that.offset = { "x": 0, "y": 0 }; // Pixel offset of the top left tile relative to the viewer div.
-		that.index = { "x": [0, 0, 0, 0, 0, 0], "y": [0, 0, 0, 0, 0, 0] }; // Index of the top left tile.
+		that.index = { "x": [0, 0, 0], "y": [0, 0, 0] }; // Index of the top left tile.
 		that.viewer = elem;
 		that.tiles = { }; // Map for visible tiles from tile names to HTMLElements.
 		that.object = object; // self
 		
 		$(that.viewer).addClass("mandelbrot");
 		$(that.viewer).append(document.createElement("div"));
+		
+		function setOffset(off) {
+			that.offset = off;
+			
+			$(that.viewer).children().css({
+				"left": that.offset.x,
+				"top": that.offset.y
+			});
+		}
 		
 		// Adds new tiles and removes those, which aren't visible anymore.
 		function updateVisible() {
@@ -178,19 +204,53 @@ Mandelbrot2 = function () {
 		
 		// Moves the content of the vievert by the amount in pixels.
 		object.move = function (x, y) {
-		
 		};
 		
+		// Zooms in by a factor of two around the origin of the viewer.
+		function zoomIn() {
+			var indexOffset = {
+				"x": Math.floor(that.offset.x / tileSize),
+				"y": Math.floor(that.offset.y / tileSize)
+			};
+			
+			setOffset({
+				"x": (that.offset.x - indexOffset.x * tileSize) * 2,
+				"y": (that.offset.y - indexOffset.y * tileSize) * 2
+			});
+			
+			that.index.x = indexAdd(that.index.x, indexOffset.x);
+			that.index.y = indexAdd(that.index.y, indexOffset.y);
+			that.index.x.push(0);
+			that.index.y.push(0);
+			
+			that.visible = { "xmin": 0, "ymin": 0, "xmax": -1, "ymax": -1 };
+			$(that.viewer).children().empty();
+		}
+		
+		// Zooms in on positive aguments and out on negative arguments.
+		object.zoom = function (z) {
+			if (z > 0) {
+				zoomIn();
+			} else if (z < 0) {
+				
+			}
+			
+			updateVisible();
+		}
+		
 		$(that.viewer).disableTextSelect();
-		$(that.viewer).drag(function () { }, function (evt) {
-			console.log([evt.offsetX, evt.offsetY]);
-			$(that.viewer).children().css({
-				left: that.offset.x + evt.offsetX,
-				top: that.offset.y + evt.offsetY
+		$(that.viewer).drag(function () {
+			that.dragStartOffset = {
+				"x": that.offset.x,
+				"y": that.offset.y
+			};
+		}, function (evt) {
+			setOffset({
+				"x": that.dragStartOffset.x + evt.offsetX,
+				"y": that.dragStartOffset.y + evt.offsetY
 			});
 		}, function (evt) {
-			that.offset.x += evt.offsetX;
-			that.offset.y += evt.offsetY;
+			delete that.dragStartOffset;
 			updateVisible();
 		});
 		

@@ -7,12 +7,14 @@
 		<style type="text/css"><![CDATA[
 			body { margin: 0px; }
 			
-			#viewer {
+			.viewer {
 				position: absolute;
 				left: 0;
-				right: 0;
 				top: 0;
+				right: 0;
 				bottom: 0;
+			/*	width: 300px; */
+			/*	height: 300px; */
 			}
 			
 		/*	div {
@@ -28,7 +30,7 @@
 		<script src="js/functions.js" />
 		<script type="text/javascript"><![CDATA[
 			$(function () {
-				m = Mandelbrot2.create($("#viewer")[0]);
+				m = Mandelbrot2.create($(".viewer")[0]);
 				$(window).resize(m.resized);
 				
 			//	testMoveInit();
@@ -73,6 +75,6 @@
 		]]></script>
 	</head>
 	<body>
-		<div id="viewer" />
+		<div class="viewer" />
 	</body>
 </html>
