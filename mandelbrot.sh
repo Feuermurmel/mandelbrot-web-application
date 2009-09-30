@@ -26,6 +26,7 @@ parse_path() {
 
 PATH="/Users/michi/usr/bin:/opt/local/bin:/opt/local/sbin:$PATH"
 SCRIPT_DIR=$(dirname "$SCRIPT_NAME")
+SIZE=256
 
 if echo "$PATH_INFO" | grep -qE "/([abcd])+\.png"; then
 	CACHE="cache/$PATH_INFO"
@@ -38,7 +39,7 @@ if echo "$PATH_INFO" | grep -qE "/([abcd])+\.png"; then
 		IM=$(echo "$INFO" | cut -f 2)
 		SCALE=$(echo "$INFO" | cut -f 3)
 		
-		./mandelbrot "$RE" "$IM" "$SCALE" 256 2> /dev/null | convert -size "256x256" -depth 8 "RGB:" "$CACHE"
+		./mandelbrot "$RE" "$IM" "$SCALE" "$SIZE" 2> /dev/null | convert -size "${SIZE}x$SIZE" -depth 8 "RGB:" "$CACHE"
 	fi
 	
 	echo "Location: $SCRIPT_DIR/$CACHE"
