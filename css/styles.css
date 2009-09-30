@@ -1,10 +1,66 @@
-div.mandelbrot {
-	overflow: hidden;
+body {
+	margin: 0px;
 }
-div.mandelbrot > div {
+
+#viewer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+
+/* mandelbrot */
+.mandelbrot {
+	overflow: hidden;
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.mandelbrot .wrapper {
 	position: absolute;
 }
 
-div img { position: absolute; padding: 0px; margin: 0px; }
+.mandelbrot .wrapper img {
+	position: absolute;
+	padding: 0px;
+	margin: 0px;
+}
 
-.link { color: blue; text-decoration: underline; }
+/* controls */
+.controls {
+	position: absolute;
+	left: 5px;
+	top: 5px;
+}
+
+.controls > div {
+	position: absolute;
+	width: 32px;
+	height: 32px;
+	cursor: pointer;
+	background-image: url(../img/zoom.png);
+}
+
+.controls .minus {
+	left: 0px;
+	top: 0px;
+	background-position: 32px 0px;
+}
+
+.controls .minus:hover {
+	background-position: 32px 32px;
+}
+
+.controls .plus {
+	left: 20px;
+	top: 0px;
+	background-position: 0px 0px;
+}
+
+.controls .plus:hover {
+	background-position: 0px 32px;
+}

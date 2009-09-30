@@ -113,30 +113,37 @@ Mandelbrot2 = function () {
 //	console.log(indexAdd([0, 0, 0], 2));
 //	console.log(indexToString([1, 0, 1]));
 	
-	module.create = function (elem) {
+	module.create = function (element) {
 		var object = { };
+		
+		// create dom elements
+		$(element).append([
+			createElement("div", { "class": "mandelbrot" }, [
+				createElement("div", { "class": "wrapper" })
+			]),
+			createElement("div", { "class": "controls" }, [
+				createElement("div", { "class": "minus" }),
+				createElement("div", { "class": "plus" })
+			])
+		]);
 		
 		var that = {
 			"visible": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }, // Number of visible tiles in each direction relative to the index.
 			"offset": { "x": 0, "y": 0 }, // Pixel offset of the top left tile relative to the viewer div.
 			"index": { "x": [0, 0, 0, 0], "y": [0, 0, 0, 0] }, // Index of the top left tile.
 			"viewer": {
-				"element": elem,
+				"wrapper": $(".wrapper", element)[0],
 				"size": { "x": 0, "y": 0 }
 			},
 			"tiles": { }, // Map for visible tiles from tile names to HTMLElements.
 			"object": object // self
 		};
-
-		
-		$(that.viewer.element).addClass("mandelbrot");
-		$(that.viewer.element).append(document.createElement("div"));
 		
 		function setOffset(x, y) {
 			that.offset.x = Math.floor(x);
 			that.offset.y = Math.floor(y);
 			
-			$(that.viewer.element).children().css({
+			$(that.viewer.wrapper).css({
 				"left": that.offset.x,
 				"top": that.offset.y
 			});
@@ -161,7 +168,7 @@ Mandelbrot2 = function () {
 			var xmax = Math.max(that.visible.xmax, visible.xmax);
 			var ymax = Math.max(that.visible.ymax, visible.ymax);
 			
-		//	console.log([xmin, ymin, xmax, ymax]);
+			console.log([xmin, ymin, xmax, ymax]);
 			
 			for (var iy = ymin; iy < ymax; iy += 1) {
 				for (var ix = xmin; ix < xmax; ix += 1) {
@@ -195,7 +202,7 @@ Mandelbrot2 = function () {
 								$(this).animate({ "opacity": 1 }, 400);
 							});
 							img.attr("src", "mandelbrot.sh/" + name + ".png");
-							$(that.viewer.element).children().append(img);
+							$(that.viewer.wrapper).append(img);
 							that.tiles[name] = img;
 							
 						//	console.log("added: " + name);
@@ -209,14 +216,14 @@ Mandelbrot2 = function () {
 		
 		function clearVisible() {
 			that.visible = { "xmin": 0, "ymin": 0, "xmax": -1, "ymax": -1 };
-			$(that.viewer.element).children().empty();
+			$(that.viewer.wrapper).empty();
 		};
 		
 		// This should be called, whenever the viewer div changed it's size.
 		object.resized = function () {
 			that.viewer.size = {
-				"x": $(that.viewer.element).width(),
-				"y": $(that.viewer.element).height()
+				"x": $(element).width(),
+				"y": $(element).height()
 			};
 			updateVisible();
 		};
@@ -271,8 +278,11 @@ Mandelbrot2 = function () {
 		};
 		
 		// setup
-		$(that.viewer.element).disableTextSelect();
-		$(that.viewer.element).drag(function () {
+		$(".plus", element).click(function () { object.zoom(1); });
+		$(".minus", element).click(function () { object.zoom(-1); });
+		
+		$(element).disableTextSelect();
+		$(".mandelbrot", element).drag(function () {
 			that.dragStartOffset = {
 				"x": that.offset.x,
 				"y": that.offset.y
