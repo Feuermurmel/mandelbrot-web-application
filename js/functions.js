@@ -168,7 +168,7 @@ Mandelbrot2 = function () {
 			var xmax = Math.max(that.visible.xmax, visible.xmax);
 			var ymax = Math.max(that.visible.ymax, visible.ymax);
 			
-			console.log([xmin, ymin, xmax, ymax]);
+		//	console.log([xmin, ymin, xmax, ymax]);
 			
 			for (var iy = ymin; iy < ymax; iy += 1) {
 				for (var ix = xmin; ix < xmax; ix += 1) {
@@ -228,7 +228,7 @@ Mandelbrot2 = function () {
 			updateVisible();
 		};
 		
-		// Moves the content of the vievert by the amount in pixels.
+		// Moves the content of the viewer by the amount in pixels.
 		object.move = function (x, y) {
 		};
 		
@@ -248,8 +248,8 @@ Mandelbrot2 = function () {
 			
 			clearVisible();
 			
-			console.log([that.index.x, that.index.y]);
-			console.log([that.offset.x, that.offset.y]);
+		//	console.log([that.index.x, that.index.y]);
+		//	console.log([that.offset.x, that.offset.y]);
 		};
 		
 		// Zooms out by a factor of two around the origin of the viewer.
@@ -292,6 +292,14 @@ Mandelbrot2 = function () {
 		}, function (evt) {
 			delete that.dragStartOffset;
 			updateVisible();
+		});
+		
+		$(".mandelbrot", element).dblclick(function (evt) {
+			var offset = $(".mandelbrot", element).offset();
+			
+			console.log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
+			moveOffset(that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top));
+			object.zoom(1);
 		});
 		
 		// initialisation
