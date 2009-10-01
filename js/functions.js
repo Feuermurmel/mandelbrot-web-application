@@ -17,6 +17,15 @@ function modulo(num, div) {
 	return num - Math.floor(num / div) * div;
 }
 
+log = function () {
+	if (typeof console == 'undefined')
+		return function (msg) { };
+	else
+		return function (msg) {
+			console.log(msg);
+		};
+} ();
+
 function getSearchArgs() {
 	var parts = document.location.search.slice(1).split("&");
 	var result = { };
@@ -105,13 +114,13 @@ Mandelbrot2 = function () {
 		return f(ind.length);
 	}
 	
-//	console.log(indexToNumber([0, 0, 0, 1]));
-//	console.log(indexToNumber([0, 0, 1, 0]));
-//	console.log(indexToNumber([0, 1, 0, 0]));
-//	console.log(indexToNumber([1, 0, 0, 0]));
+//	log(indexToNumber([0, 0, 0, 1]));
+//	log(indexToNumber([0, 0, 1, 0]));
+//	log(indexToNumber([0, 1, 0, 0]));
+//	log(indexToNumber([1, 0, 0, 0]));
 	
-//	console.log(indexAdd([0, 0, 0], 2));
-//	console.log(indexToString([1, 0, 1]));
+//	log(indexAdd([0, 0, 0], 2));
+//	log(indexToString([1, 0, 1]));
 	
 	module.create = function (element) {
 		var object = { };
@@ -168,7 +177,7 @@ Mandelbrot2 = function () {
 			var xmax = Math.max(that.visible.xmax, visible.xmax);
 			var ymax = Math.max(that.visible.ymax, visible.ymax);
 			
-		//	console.log([xmin, ymin, xmax, ymax]);
+		//	log([xmin, ymin, xmax, ymax]);
 			
 			for (var iy = ymin; iy < ymax; iy += 1) {
 				for (var ix = xmin; ix < xmax; ix += 1) {
@@ -186,7 +195,7 @@ Mandelbrot2 = function () {
 							$(that.tiles[name]).remove();
 							delete that.tiles[name];
 							
-						//	console.log("removed: " + name);
+						//	log("removed: " + name);
 						} else if (after) {
 							var img = $(new Image());
 							
@@ -205,7 +214,7 @@ Mandelbrot2 = function () {
 							$(that.viewer.wrapper).append(img);
 							that.tiles[name] = img;
 							
-						//	console.log("added: " + name);
+						//	log("added: " + name);
 						}
 					}
 				};
@@ -248,8 +257,8 @@ Mandelbrot2 = function () {
 			
 			clearVisible();
 			
-		//	console.log([that.index.x, that.index.y]);
-		//	console.log([that.offset.x, that.offset.y]);
+		//	log([that.index.x, that.index.y]);
+		//	log([that.offset.x, that.offset.y]);
 		};
 		
 		// Zooms out by a factor of two around the origin of the viewer.
@@ -297,9 +306,13 @@ Mandelbrot2 = function () {
 		$(".mandelbrot", element).dblclick(function (evt) {
 			var offset = $(".mandelbrot", element).offset();
 			
-			console.log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
+			log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
 			moveOffset(that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top));
 			object.zoom(1);
+		});
+		
+		$(".controls", element).dblclick(function (evt) {
+			evt.stopPropagation();
 		});
 		
 		// initialisation
