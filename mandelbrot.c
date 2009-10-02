@@ -20,8 +20,11 @@
 /* Defalt maximum iteration count */
 #define CONFIGURATION_DFAULT_MAX_INTERATIONS 65000
 
-/* Defalt number of colors used in the colorizing gradient. */
-#define CONFIGURATION_DFAULT_GRADIENT_COLORS 25
+/* Relative length of a color cycle in the coloring gradient. */
+#define CONFIGURATION_DFAULT_GRADIENT_INTERVAL 30
+
+/* Inverse speed at which the color cycles become longer. */
+#define CONFIGURATION_DFAULT_GRADIENT_SLOPE 100
 
 typedef CONFIGURATION_ITERATION_TYPE iterations_t;
 
@@ -79,11 +82,11 @@ iterations_t * mandelbrot(int const size, struct complex_d const origin, double 
 		
 	field[0] = n_region;
 	
-	for (i.im = 0; i.im < size; i.im += 1)
+	for (i.im = 0; i.im < size; i.im += 1) {
 		for (i.re = 0; i.re < size; i.re += 1) {
-			if (border[size * i.im + i.re])
+			if (border[size * i.im + i.re]) {
 				n_region = field[size * i.im + i.re];
-			else if (field[size * i.im + i.re] == 0) {
+			} else if (field[size * i.im + i.re] == 0) {
 				field[size * i.im + i.re] = n_region;
 			} else {
 				struct complex_i i_start = complex_subt(i, ((struct complex_i) { 1, 0 }));
@@ -92,22 +95,22 @@ iterations_t * mandelbrot(int const size, struct complex_d const origin, double 
 				n_region = field[size * i.im + i.re];
 				
 				until (complex_eq(i, i_start)) {
-					if (false) {
-						fprintf(stderr, "i: (%d, %d)\n" "i_start: (%d, %d)\n" "n_region: %d, dir: %d\n", i.im, i.re, i_start.im, i_start.re, n_region, dir);
+#if 0
+					fprintf(stderr, "i: (%d, %d)\n" "i_start: (%d, %d)\n" "n_region: %d, dir: %d\n", i.im, i.re, i_start.im, i_start.re, n_region, dir);
+					
+					for (int j = 0; j < size; j += 1) {
+						for (int i = 0; i < size; i += 1)
+							fprintf(stderr, "%d\t", field[size * j + i]);
 						
-						for (int j = 0; j < size; j += 1) {
-							for (int i = 0; i < size; i += 1)
-								fprintf(stderr, "%d\t", field[size * j + i]);
-							
-							fprintf(stderr, "\t");
-							for (int i = 0; i < size; i += 1)
-								fprintf(stderr, "%d\t", border[size*j + i]);
-							
-							fprintf(stderr, "\n");
-						}
+						fprintf(stderr, "\t");
+						for (int i = 0; i < size; i += 1)
+							fprintf(stderr, "%d\t", border[size*j + i]);
 						
 						fprintf(stderr, "\n");
 					}
+					
+					fprintf(stderr, "\n");
+#endif
 					
 					if (0 <= i.re && i.re < size && 0 <= i.im && i.im < size) {
 						if (field[size * i.im + i.re] == 0) {
@@ -129,6 +132,7 @@ iterations_t * mandelbrot(int const size, struct complex_d const origin, double 
 				}
 			}
 		}
+	}
 	
 	free(border);
 	
@@ -149,18 +153,19 @@ struct color {
 
 struct color * gradient(int num) {
 	struct color * buf = malloc(sizeof (struct color) * (num + 1));
-	double c = num;
+	double const interval = CONFIGURATION_DFAULT_GRADIENT_INTERVAL;
+	double const slope = CONFIGURATION_DFAULT_GRADIENT_SLOPE;
 	
 	if (buf == NULL)
 		goto fail;
 	
 	for (int i = 0; i < num; i += 1) {
-		double n = i;
+		double x = log((double) i / slope + 1.) * slope / interval;
 		
 		buf[i] = (struct color) {
-			to_range(0., 153. + 204. * cos((M_PI * (c - 6. * n)) / (3. * c)), 255.),
-			to_range(0., 153. + 204. * cos((2. * M_PI * n) / c), 255.),
-			to_range(0., 153. + 204. * cos((M_PI * (c + 6. * n)) / (3. * c)), 255.)
+			to_range(0., 153. + 204. * cos((M_PI * (1. - 6. * x)) / (3. * 1.)), 255.),
+			to_range(0., 153. + 204. * cos((2. * M_PI * x) / 1.), 255.),
+			to_range(0., 153. + 204. * cos((M_PI * (1. + 6. * x)) / (3. * 1.)), 255.)
 		};
 	}
 	
@@ -179,7 +184,7 @@ int main (int argc, char ** const argv) {
 			"    <range>: Coordinate range to include in both directions.\n"
 			"    <size>: Pixel length of one side of the image square.\n"
 			"    <iter>: Maximum number of iterations.\n"
-			"    <grad>: Number of colors in the coloring gradient.\n",
+			/* "    <grad>: Number of colors in the coloring gradient.\n" */,
 			argv[0]
 		);
 		return 1;
@@ -187,16 +192,16 @@ int main (int argc, char ** const argv) {
 		struct complex_d orig;
 		double pixel_size;
 		int size = CONFIGURATION_DFAULT_IMAGE_SIZE;
-		int grad_colors = CONFIGURATION_DFAULT_GRADIENT_COLORS;
+	//	int grad_colors = CONFIGURATION_DFAULT_GRADIENT_COLORS;
 		iterations_t max_iterations = CONFIGURATION_DFAULT_MAX_INTERATIONS;
 		
 		if (argc > 4)
 			size = strtol(argv[4], NULL, 10);
 		if (argc > 5)
 			max_iterations = strtol(argv[5], NULL, 10);
-		if (argc > 6)
+	/*	if (argc > 6)
 			grad_colors = strtol(argv[6], NULL, 10);
-		
+	*/	
 		pixel_size = strtod(argv[3], NULL) / size;
 		
 		orig = (struct complex_d) {
@@ -205,7 +210,7 @@ int main (int argc, char ** const argv) {
 		};
 		
 		{
-			struct color * grad = gradient(grad_colors);
+			struct color * grad = gradient(max_iterations);
 			iterations_t * field = mandelbrot(size, orig, pixel_size, max_iterations);
 			struct color * image = malloc(sizeof (struct color) * size * size);
 			
@@ -214,11 +219,9 @@ int main (int argc, char ** const argv) {
 			
 			for (int i = 0; i < size * size; i += 1) {
 				if (field[i] == (iterations_t) -1)
-					image[i] = grad[grad_colors];
+					image[i] = grad[max_iterations];
 				else
-					image[i] = grad[(int) ((sqrt(1. + (double) field[i] / 10.) * grad_colors) - 1.) % grad_colors];
-				//	image[i] = grad[field[i] % grad_colors];
-				//	image[i] = grad[(int) (sqrt((double) field[i] / 25) * grad_colors) % grad_colors];
+					image[i] = grad[field[i] - 1];
 			}
 			
 		//	write(1, field, sizeof (iterations_t) * size * size);
