@@ -240,8 +240,7 @@ Mandelbrot = function () {
 			$(".plus", element).click(function () { object.zoom(1); });
 			$(".minus", element).click(function () { object.zoom(-1); });
 			
-			$(element).disableTextSelect();
-			$(".mandelbrot", element).drag(function () {
+			$(element).disableTextSelect().drag(function () {
 				that.dragStartOffset = {
 					"x": that.offset.x,
 					"y": that.offset.y
@@ -252,19 +251,7 @@ Mandelbrot = function () {
 				delete that.dragStartOffset;
 				updateVisible();
 				updateHash();
-			});
-			
-			$(document).everyTime("500ms", function () {
-				if (document.location.hash != that.lastHash) {
-					// TODO: Input validation needed here!!!
-					log(document.location.hash);
-					updateFromHash();
-					updateVisible(true);
-					updateHash();
-				}
-			});
-			
-			$(element).dblclick(function (evt) {
+			}).dblclick(function (evt) {
 				var offset = $(this).offset();
 				
 				log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
@@ -275,6 +262,16 @@ Mandelbrot = function () {
 			$(".controls", element).dblclick(function (evt) {
 				// So "double-clicking" on a control doesen't zoom in.
 				evt.stopPropagation();
+			});
+			
+			$(document).everyTime("500ms", function () {
+				if (document.location.hash != that.lastHash) {
+					// TODO: Input validation needed here!!!
+					log(document.location.hash);
+					updateFromHash();
+					updateVisible(true);
+					updateHash();
+				}
 			});
 			
 			$(window).resize(function () {
