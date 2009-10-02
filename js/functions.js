@@ -67,17 +67,7 @@ Mandelbrot = function () {
 		return f(ind.length);
 	}
 	
-//	log(indexToNumber([0, 0, 0, 1]));
-//	log(indexToNumber([0, 0, 1, 0]));
-//	log(indexToNumber([0, 1, 0, 0]));
-//	log(indexToNumber([1, 0, 0, 0]));
-	
-//	log(indexAdd([0, 0, 0], 2));
-//	log(indexToString([1, 0, 1]));
-	
 	module.create = function (element) {
-		var object = { };
-		
 		var that = {
 			"visible": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }, // Number of visible tiles in each direction relative to the index.
 			"offset": { "x": 0, "y": 0 }, // Pixel offset of the top left tile relative to the viewer div.
@@ -242,11 +232,18 @@ Mandelbrot = function () {
 		
 		function init() {
 			// setup
-			$(".plus", element).click(function () { object.zoom(1); });
-			$(".minus", element).click(function () { object.zoom(-1); });
+			$(".plus", element).click(function () {
+				zoomIn();
+				updateVisible(true);
+				updateHash();
+			});
+			$(".minus", element).click(function () {
+				zoomOut();
+				updateVisible(true);
+				updateHash();
+			});
 			
-			$(element).disableTextSelect();
-			$(".mandelbrot", element).drag(function () {
+			$(element).disableTextSelect().drag(function () {
 				that.dragStartOffset = {
 					"x": that.offset.x,
 					"y": that.offset.y
@@ -270,14 +267,23 @@ Mandelbrot = function () {
 			$(element).dblclick(function (evt) {
 				var offset = $(this).offset();
 				
-				log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
 				moveOffset(that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top));
-				object.zoom(1);
+				zoomIn();
+				updateVisible(true);
+				updateHash();
 			});
 			
 			$(".controls", element).dblclick(function (evt) {
 				// So "double-clicking" on a control doesen't zoom in.
 				evt.stopPropagation();
+			});
+			
+			$(document).everyTime("500ms", function () {
+				if (document.location.hash != that.lastHash) {
+					updateFromHash();
+					updateVisible(true);
+					updateHash();
+				}
 			});
 			
 			$(window).resize(function () {
@@ -292,23 +298,7 @@ Mandelbrot = function () {
 			updateVisible();
 		};
 		
-		// Zooms in on positive aguments and out on negative arguments.
-		object.zoom = function (dir) {
-			if (dir > 0) {
-				zoomIn();
-				moveOffset(-that.viewer.size.x / 2, -that.viewer.size.y / 2);
-			} else if (dir < 0) {
-				moveOffset(that.viewer.size.x / 2, that.viewer.size.y / 2);
-				zoomOut();
-			}
-			
-			updateVisible(true);
-			updateHash();
-		};
-		
 		init();
-		
-		return object;
 	};
 	
 	return module;
