@@ -67,14 +67,6 @@ Mandelbrot = function () {
 		return f(ind.length);
 	}
 	
-//	log(indexToNumber([0, 0, 0, 1]));
-//	log(indexToNumber([0, 0, 1, 0]));
-//	log(indexToNumber([0, 1, 0, 0]));
-//	log(indexToNumber([1, 0, 0, 0]));
-	
-//	log(indexAdd([0, 0, 0], 2));
-//	log(indexToString([1, 0, 1]));
-	
 	module.create = function (element) {
 		var object = { };
 		
@@ -254,7 +246,6 @@ Mandelbrot = function () {
 			}).dblclick(function (evt) {
 				var offset = $(this).offset();
 				
-				log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
 				moveOffset(that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top));
 				object.zoom(1);
 			});
@@ -266,8 +257,6 @@ Mandelbrot = function () {
 			
 			$(document).everyTime("500ms", function () {
 				if (document.location.hash != that.lastHash) {
-					// TODO: Input validation needed here!!!
-					log(document.location.hash);
 					updateFromHash();
 					updateVisible(true);
 					updateHash();
