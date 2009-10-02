@@ -150,7 +150,7 @@ Mandelbrot2 = function () {
 		var that = {
 			"visible": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }, // Number of visible tiles in each direction relative to the index.
 			"offset": { "x": 0, "y": 0 }, // Pixel offset of the top left tile relative to the viewer div.
-			"index": { "x": [0, 0, 0, 0], "y": [0, 0, 0, 0] }, // Index of the top left tile.
+			"index": { "x": [], "y": [] }, // Index of the top left tile.
 			"viewer": {
 				"wrapper": $(".wrapper", element)[0],
 				"size": { "x": 0, "y": 0 }
@@ -173,18 +173,24 @@ Mandelbrot2 = function () {
 			that.lastHash = document.location.hash;
 		};
 		
-		function centerHash(name) {
-			that.index = indexFromName(name);
-			setOffset(Math.floor((that.viewer.size.x - tileSize) / 2), Math.floor((that.viewer.size.y - tileSize) / 2));
+		function updateFromHash() {
+			that.lastHash = document.location.hash;
+			var slice = document.location.hash.slice(1);
+			
+			if (slice == "") {
+				that.index = { "x": [1], "y": [1] };
+				setOffset(that.viewer.size.x / 2, that.viewer.size.x / 2);
+			} else {
+				that.index = indexFromName(slice);
+				setOffset(Math.floor((that.viewer.size.x - tileSize) / 2), Math.floor((that.viewer.size.y - tileSize) / 2));
+			}
 		};
 		
-		centerHashTest = function (hash) {
-			log([that.index.x, that.index.y, that.offset.x, that.offset.y]);
-			centerHash(hash);
-			log([that.index.x, that.index.y, that.offset.x, that.offset.y]);
-			
-			updateVisible(true);
-			updateHash();
+		function updateSize() {
+			that.viewer.size = {
+				"x": $(element).width(),
+				"y": $(element).height()
+			};
 		};
 		
 		function setOffset(x, y) {
@@ -273,21 +279,6 @@ Mandelbrot2 = function () {
 			that.visible = visible;
 		};
 		
-		// This should be called, whenever the viewer div changed it's size.
-		object.resized = function () {
-			that.viewer.size = {
-				"x": $(element).width(),
-				"y": $(element).height()
-			};
-			
-			updateVisible();
-			updateHash();
-		};
-		
-		// Moves the content of the viewer by the amount in pixels.
-		object.move = function (x, y) {
-		};
-		
 		// Zooms in by a factor of two around the origin of the viewer.
 		function zoomIn() {
 			var indexOffset = {
@@ -313,6 +304,64 @@ Mandelbrot2 = function () {
 			setOffset((that.offset.x - indexOffset.x * tileSize) / 2, (that.offset.y - indexOffset.y * tileSize) / 2);
 		};
 		
+		function init() {
+			// setup
+			$(".plus", element).click(function () { object.zoom(1); });
+			$(".minus", element).click(function () { object.zoom(-1); });
+			
+			$(element).disableTextSelect();
+			$(".mandelbrot", element).drag(function () {
+				that.dragStartOffset = {
+					"x": that.offset.x,
+					"y": that.offset.y
+				};
+			}, function (evt) {
+				setOffset(that.dragStartOffset.x + evt.offsetX, that.dragStartOffset.y + evt.offsetY);
+			}, function (evt) {
+				delete that.dragStartOffset;
+				updateVisible();
+				updateHash();
+			});
+			
+			$(document).everyTime("500ms", function () {
+				if (document.location.hash != that.lastHash) {
+					// TODO: Input validation needed here!!!
+					log(document.location.hash);
+					updateFromHash();
+					updateVisible(true);
+					updateHash();
+				}
+			});
+			
+			$(".mandelbrot", element).dblclick(function (evt) {
+				var offset = $(".mandelbrot", element).offset();
+				
+				log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
+				moveOffset(that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top));
+				object.zoom(1);
+			});
+			
+			$(".controls", element).dblclick(function (evt) {
+				// So "double-clicking" on a control doesen't zoom in.
+				evt.stopPropagation();
+			});
+			
+			$(window).resize(function () {
+				updateSize();
+				updateVisible();
+				updateHash();
+			})
+			
+			// initialisation
+			console.log([that.offset.x, that.offset.y]);
+			updateSize();
+			console.log([that.offset.x, that.offset.y]);
+			updateFromHash();
+			console.log([that.offset.x, that.offset.y]);
+			updateVisible();
+			console.log([that.offset.x, that.offset.y]);
+		};
+		
 		// Zooms in on positive aguments and out on negative arguments.
 		object.zoom = function (dir) {
 			if (dir > 0) {
@@ -327,51 +376,7 @@ Mandelbrot2 = function () {
 			updateHash();
 		};
 		
-		// setup
-		$(".plus", element).click(function () { object.zoom(1); });
-		$(".minus", element).click(function () { object.zoom(-1); });
-		
-		$(element).disableTextSelect();
-		$(".mandelbrot", element).drag(function () {
-			that.dragStartOffset = {
-				"x": that.offset.x,
-				"y": that.offset.y
-			};
-		}, function (evt) {
-			setOffset(that.dragStartOffset.x + evt.offsetX, that.dragStartOffset.y + evt.offsetY);
-		}, function (evt) {
-			delete that.dragStartOffset;
-			updateVisible();
-			updateHash();
-		});
-		
-		$(document).everyTime("1s", function () {
-			if (document.location.hash != that.lastHash) {
-				// TODO: Input validation needed here!!!
-				log(document.location.hash);
-				centerHash(document.location.hash.slice(1));
-				updateVisible(true);
-				updateHash();
-			}
-		});
-		
-		$(".mandelbrot", element).dblclick(function (evt) {
-			var offset = $(".mandelbrot", element).offset();
-			
-			log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
-			moveOffset(that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top));
-			object.zoom(1);
-		});
-		
-		$(".controls", element).dblclick(function (evt) {
-			// So "double-clicking" on a control doesen't zoom in.
-			evt.stopPropagation();
-		});
-		
-		// initialisation
-		object.resized();
-		updateVisible();
-		updateHash();
+		init();
 		
 		return object;
 	};
