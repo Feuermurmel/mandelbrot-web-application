@@ -75,7 +75,6 @@ Mandelbrot2 = function () {
 	}
 	
 	function indexAdd(ind, num) {
-		// ind = object(ind); ***leakage
 		ind = ind.map(function (v) { return v; });
 		
 		if (ind.length > 0) {
@@ -94,6 +93,18 @@ Mandelbrot2 = function () {
 			path += replace[ind.y[i]][ind.x[i]];
 		
 		return path;
+	}
+	
+	function indexFromName(name) {
+		var replace = { "a": [0, 0], "b": [1, 0], "c": [0, 1], "d": [1, 1] };
+		var index = { "x": [], "y": [] };
+		
+		name.split("").map(function (v) {
+			index.x.push(replace[v][0]);
+			index.y.push(replace[v][1]);
+		});
+		
+		return index;
 	}
 	
 	function indexToString(ind) {
@@ -145,7 +156,35 @@ Mandelbrot2 = function () {
 				"size": { "x": 0, "y": 0 }
 			},
 			"tiles": { }, // Map for visible tiles from tile names to HTMLElements.
-			"object": object // self
+			"object": object, // self
+			"lastHash": ""
+		};
+		
+		function updateHash() {
+			var offset = {
+				"x": that.offset.x - that.viewer.size.x / 2,
+				"y": that.offset.y - that.viewer.size.y / 2
+			};
+			
+			document.location.hash = "#" + indexName({
+				"x": indexAdd(that.index.x, Math.floor(-offset.x / tileSize)),
+				"y": indexAdd(that.index.y, Math.floor(-offset.y / tileSize))
+			});
+			that.lastHash = document.location.hash;
+		};
+		
+		function centerHash(name) {
+			that.index = indexFromName(name);
+			setOffset(Math.floor((that.viewer.size.x - tileSize) / 2), Math.floor((that.viewer.size.y - tileSize) / 2));
+		};
+		
+		centerHashTest = function (hash) {
+			log([that.index.x, that.index.y, that.offset.x, that.offset.y]);
+			centerHash(hash);
+			log([that.index.x, that.index.y, that.offset.x, that.offset.y]);
+			
+			updateVisible(true);
+			updateHash();
 		};
 		
 		function setOffset(x, y) {
@@ -163,7 +202,40 @@ Mandelbrot2 = function () {
 		};
 		
 		// Adds new tiles and removes those, which aren't visible anymore.
-		function updateVisible() {
+		function updateVisible(clear) {
+			// TODO: Check that visible != that.visible.
+			function tileName(ix, iy) {
+				return indexName({
+					"x": indexAdd(that.index.x, ix),
+					"y": indexAdd(that.index.y, iy)
+				});
+			};
+			
+			function removeTile(ix, iy) {
+				var name = tileName(ix, iy);
+				
+				$(that.tiles[name]).remove();
+				delete that.tiles[name];
+			};
+			
+			function createTile(ix, iy) {
+				var img = $(new Image());
+				var name = tileName(ix, iy);
+				
+				img.css({
+					"left": ix * tileSize,
+					"top": iy * tileSize,
+					"width": tileSize,
+					"height": tileSize,
+					"opacity": 0
+				}).load(function () {
+				//	$(this).css({ "opacity": 1 });
+					$(this).animate({ "opacity": 1 }, 400);
+				}).attr("src", "mandelbrot.sh/" + name + ".png");
+				$(that.viewer.wrapper).append(img);
+				that.tiles[name] = img;
+			};
+			
 			var visible = {
 				"xmin": -Math.ceil(that.offset.x / tileSize),
 				"ymin": -Math.ceil(that.offset.y / tileSize),
@@ -171,61 +243,34 @@ Mandelbrot2 = function () {
 				"ymax": Math.ceil((that.viewer.size.y - that.offset.y) / tileSize),
 			};
 			
-			// TODO: Check that visible != that.visible
-			var xmin = Math.min(that.visible.xmin, visible.xmin);
-			var ymin = Math.min(that.visible.ymin, visible.ymin);
-			var xmax = Math.max(that.visible.xmax, visible.xmax);
-			var ymax = Math.max(that.visible.ymax, visible.ymax);
-			
-		//	log([xmin, ymin, xmax, ymax]);
-			
-			for (var iy = ymin; iy < ymax; iy += 1) {
-				for (var ix = xmin; ix < xmax; ix += 1) {
-					var before = that.visible.xmin <= ix && ix < that.visible.xmax && that.visible.ymin <= iy && iy < that.visible.ymax;
-					var after = visible.xmin <= ix && ix < visible.xmax && visible.ymin <= iy && iy < visible.ymax;
-					
-					if (before != after) {
-						// TODO: Some magic needed here to check wether we're outside of the fractal.
-						var name = indexName({
-							"x": indexAdd(that.index.x, ix),
-							"y": indexAdd(that.index.y, iy)
-						});
+			if (clear) {
+				// Clear all tiles and recreate everything.
+				$(that.viewer.wrapper).empty();
+				that.tiles = [];
+				
+				for (var iy = visible.ymin; iy < visible.ymax; iy += 1)
+					for (var ix = visible.xmin; ix < visible.xmax; ix += 1)
+						createTile(ix, iy);
+			} else {
+				var xmin = Math.min(that.visible.xmin, visible.xmin);
+				var ymin = Math.min(that.visible.ymin, visible.ymin);
+				var xmax = Math.max(that.visible.xmax, visible.xmax);
+				var ymax = Math.max(that.visible.ymax, visible.ymax);
+				
+				for (var iy = ymin; iy < ymax; iy += 1) {
+					for (var ix = xmin; ix < xmax; ix += 1) {
+						var before = that.visible.xmin <= ix && ix < that.visible.xmax && that.visible.ymin <= iy && iy < that.visible.ymax;
+						var after = visible.xmin <= ix && ix < visible.xmax && visible.ymin <= iy && iy < visible.ymax;
 						
-						if (before) {
-							$(that.tiles[name]).remove();
-							delete that.tiles[name];
-							
-						//	log("removed: " + name);
-						} else if (after) {
-							var img = $(new Image());
-							
-							img.css({
-								"left": ix * tileSize,
-								"top": iy * tileSize,
-								"width": tileSize,
-								"height": tileSize,
-								"opacity": 0
-							});
-							img.load(function () {
-							//	$(this).css({ "opacity": 1 });
-								$(this).animate({ "opacity": 1 }, 400);
-							});
-							img.attr("src", "mandelbrot.sh/" + name + ".png");
-							$(that.viewer.wrapper).append(img);
-							that.tiles[name] = img;
-							
-						//	log("added: " + name);
-						}
-					}
+						if (before && !after)
+							removeTile(ix, iy);
+						else if (!before && after)
+							createTile(ix, iy);
+					};
 				};
-			};
+			}
 			
 			that.visible = visible;
-		};
-		
-		function clearVisible() {
-			that.visible = { "xmin": 0, "ymin": 0, "xmax": -1, "ymax": -1 };
-			$(that.viewer.wrapper).empty();
 		};
 		
 		// This should be called, whenever the viewer div changed it's size.
@@ -234,7 +279,9 @@ Mandelbrot2 = function () {
 				"x": $(element).width(),
 				"y": $(element).height()
 			};
+			
 			updateVisible();
+			updateHash();
 		};
 		
 		// Moves the content of the viewer by the amount in pixels.
@@ -254,11 +301,6 @@ Mandelbrot2 = function () {
 			that.index.y = indexAdd(that.index.y, indexOffset.y);
 			that.index.x.push(0);
 			that.index.y.push(0);
-			
-			clearVisible();
-			
-		//	log([that.index.x, that.index.y]);
-		//	log([that.offset.x, that.offset.y]);
 		};
 		
 		// Zooms out by a factor of two around the origin of the viewer.
@@ -269,8 +311,6 @@ Mandelbrot2 = function () {
 			};
 			
 			setOffset((that.offset.x - indexOffset.x * tileSize) / 2, (that.offset.y - indexOffset.y * tileSize) / 2);
-			
-			clearVisible();
 		};
 		
 		// Zooms in on positive aguments and out on negative arguments.
@@ -283,7 +323,8 @@ Mandelbrot2 = function () {
 				zoomOut();
 			}
 			
-			updateVisible();
+			updateVisible(true);
+			updateHash();
 		};
 		
 		// setup
@@ -301,6 +342,17 @@ Mandelbrot2 = function () {
 		}, function (evt) {
 			delete that.dragStartOffset;
 			updateVisible();
+			updateHash();
+		});
+		
+		$(document).everyTime("1s", function () {
+			if (document.location.hash != that.lastHash) {
+				// TODO: Input validation needed here!!!
+				log(document.location.hash);
+				centerHash(document.location.hash.slice(1));
+				updateVisible(true);
+				updateHash();
+			}
 		});
 		
 		$(".mandelbrot", element).dblclick(function (evt) {
@@ -312,12 +364,14 @@ Mandelbrot2 = function () {
 		});
 		
 		$(".controls", element).dblclick(function (evt) {
+			// So "double-clicking" on a control doesen't zoom in.
 			evt.stopPropagation();
 		});
 		
 		// initialisation
 		object.resized();
 		updateVisible();
+		updateHash();
 		
 		return object;
 	};
