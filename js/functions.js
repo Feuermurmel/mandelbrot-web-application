@@ -1,7 +1,7 @@
 Mandelbrot = function () {
 	var module = { };
 	
-	tileSize = 256/2; // Pixel size of one tile.
+	tileSize = 256; // Pixel size of one tile.
 	
 	function indexFixup(ind) {
 		var last = ind.pop();
@@ -151,21 +151,38 @@ Mandelbrot = function () {
 			};
 			
 			function createTile(ix, iy) {
-				var img = $(new Image());
+				var div = $(createElement("div"));
 				var name = tileName(ix, iy);
 				
-				img.css({
+				function createImage(name, size, posx, posy) {
+					var img = new Image();
+					
+					$(img).css({
+						"opacity": 0,
+						"width": size,
+						"height": size,
+						"left": posx * size,
+						"top": posy * size,
+					}).load(function () {
+						$(this).animate({ "opacity": 1 }, 400);
+					}).attr("src", "mandelbrot.sh/" + name + ".png");
+					
+					return img;
+				};
+				
+				div.css({
 					"left": ix * tileSize,
 					"top": iy * tileSize,
-					"width": tileSize,
-					"height": tileSize,
-					"opacity": 0
-				}).load(function () {
-				//	$(this).css({ "opacity": 1 });
-					$(this).animate({ "opacity": 1 }, 400);
-				}).attr("src", "mandelbrot.sh/" + name + ".png");
-				that.viewer.wrapper.append(img);
-				that.tiles[name] = img;
+				}).append([
+					createImage(name, tileSize, 0, 0),
+					createImage(name + "a", tileSize / 2, 0, 0),
+					createImage(name + "b", tileSize / 2, 1, 0),
+					createImage(name + "c", tileSize / 2, 0, 1),
+					createImage(name + "d", tileSize / 2, 1, 1)
+				]);
+				
+				that.viewer.wrapper.append(div);
+				that.tiles[name] = div;
 			};
 			
 			var visible = {

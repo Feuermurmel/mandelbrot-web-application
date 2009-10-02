@@ -24,7 +24,7 @@ body {
 	position: absolute;
 }
 
-#mandelbrot .wrapper img {
+#mandelbrot .wrapper img, #mandelbrot .wrapper div {
 	position: absolute;
 	padding: 0px;
 	margin: 0px;
