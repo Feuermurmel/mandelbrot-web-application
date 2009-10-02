@@ -135,6 +135,8 @@ Mandelbrot = function () {
 		
 		// Adds new tiles and removes those, which aren't visible anymore.
 		function updateVisible(clear) {
+			var postFixUp = [];
+				
 			// TODO: Check that visible != that.visible.
 			function tileName(ix, iy) {
 				return indexName({
@@ -173,13 +175,16 @@ Mandelbrot = function () {
 				div.css({
 					"left": ix * tileSize,
 					"top": iy * tileSize,
-				}).append([
-					createImage(name, tileSize, 0, 0),
-					createImage(name + "a", tileSize / 2, 0, 0),
-					createImage(name + "b", tileSize / 2, 1, 0),
-					createImage(name + "c", tileSize / 2, 0, 1),
-					createImage(name + "d", tileSize / 2, 1, 1)
-				]);
+				}).append(createImage(name, tileSize, 0, 0));
+				
+				postFixUp.push(function () {
+					div.append([
+						createImage(name + "a", tileSize / 2, 0, 0),
+						createImage(name + "b", tileSize / 2, 1, 0),
+						createImage(name + "c", tileSize / 2, 0, 1),
+						createImage(name + "d", tileSize / 2, 1, 1)
+					]);
+				})
 				
 				that.viewer.wrapper.append(div);
 				that.tiles[name] = div;
@@ -218,6 +223,8 @@ Mandelbrot = function () {
 					};
 				};
 			}
+			
+			postFixUp.map(function (v) { v(); });
 			
 			that.visible = visible;
 		};
