@@ -205,14 +205,14 @@ Mandelbrot = function () {
 			that.visible = visible;
 		};
 		
-		// Zooms in by a factor of two around the origin of the viewer.
+		// Zooms in by a factor of two around the center of the viewer.
 		function zoomIn() {
 			var indexOffset = {
 				"x": -Math.floor(that.offset.x / tileSize),
 				"y": -Math.floor(that.offset.y / tileSize)
 			};
 			
-			setOffset((that.offset.x + indexOffset.x * tileSize) * 2, (that.offset.y + indexOffset.y * tileSize) * 2);
+			setOffset((that.offset.x + indexOffset.x * tileSize) * 2 - that.viewer.size.x / 2, (that.offset.y + indexOffset.y * tileSize) * 2 - that.viewer.size.y / 2);
 			
 			that.index.x = indexAdd(that.index.x, indexOffset.x);
 			that.index.y = indexAdd(that.index.y, indexOffset.y);
@@ -220,14 +220,14 @@ Mandelbrot = function () {
 			that.index.y.push(0);
 		};
 		
-		// Zooms out by a factor of two around the origin of the viewer.
+		// Zooms out by a factor of two around the center of the viewer.
 		function zoomOut() {
 			var indexOffset = {
 				"x": that.index.x.pop(),
 				"y": that.index.y.pop()
 			};
 			
-			setOffset((that.offset.x - indexOffset.x * tileSize) / 2, (that.offset.y - indexOffset.y * tileSize) / 2);
+			setOffset((that.offset.x - indexOffset.x * tileSize + that.viewer.size.x / 2) / 2, (that.offset.y - indexOffset.y * tileSize + that.viewer.size.y / 2) / 2);
 		};
 		
 		function init() {
