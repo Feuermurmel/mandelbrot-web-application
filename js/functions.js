@@ -106,7 +106,12 @@ Mandelbrot = function () {
 		
 		function updateFromHash() {
 			that.lastHash = document.location.hash;
-			var slice = document.location.hash.slice(1);
+			var slice = document.location.hash.split("").map(function (v) {
+				if ("abcd".indexOf(v) < 0)
+					return "";
+				else
+					return v;
+			}).join("");
 			
 			if (slice == "") {
 				that.index = { "x": [1], "y": [1] };
@@ -256,8 +261,6 @@ Mandelbrot = function () {
 			
 			$(document).everyTime("500ms", function () {
 				if (document.location.hash != that.lastHash) {
-					// TODO: Input validation needed here!!!
-					log(document.location.hash);
 					updateFromHash();
 					updateVisible(true);
 					updateHash();
