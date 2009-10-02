@@ -11,7 +11,7 @@ body {
 }
 
 /* mandelbrot */
-.mandelbrot {
+#mandelbrot {
 	overflow: hidden;
 	position: absolute;
 	left: 0;
@@ -20,23 +20,23 @@ body {
 	bottom: 0;
 }
 
-.mandelbrot .wrapper {
+#mandelbrot .wrapper {
 	position: absolute;
 }
 
-.mandelbrot .wrapper img {
+#mandelbrot .wrapper img {
 	position: absolute;
 	padding: 0px;
 	margin: 0px;
 }
 
-.mandelbrot .controls {
+#mandelbrot .controls {
 	position: absolute;
 	left: 5px;
 	top: 5px;
 }
 
-.mandelbrot .controls > div {
+#mandelbrot .controls > div {
 	position: absolute;
 	width: 32px;
 	height: 32px;
@@ -44,22 +44,22 @@ body {
 	background-image: url(../img/zoom.png);
 }
 
-.mandelbrot .controls .minus {
+#mandelbrot .controls .minus {
 	left: 0px;
 	top: 0px;
 	background-position: 32px 0px;
 }
 
-.mandelbrot .controls .minus:hover {
+#mandelbrot .controls .minus:hover {
 	background-position: 32px 32px;
 }
 
-.mandelbrot .controls .plus {
+#mandelbrot .controls .plus {
 	left: 20px;
 	top: 0px;
 	background-position: 0px 0px;
 }
 
-.mandelbrot .controls .plus:hover {
+#mandelbrot .controls .plus:hover {
 	background-position: 0px 32px;
 }

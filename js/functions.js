@@ -1,62 +1,4 @@
-function object(obj) {
-	function F() {}
-	F.prototype = obj;
-	return new F();
-};
-
-function sign(num) {
-	if (num > 0)
-		return 1;
-	else if (num < 0)
-		return -1;
-	else
-		return 0;
-};
-
-function modulo(num, div) {
-	return num - Math.floor(num / div) * div;
-}
-
-log = function () {
-	if (typeof console == 'undefined')
-		return function (msg) { };
-	else
-		return function (msg) {
-			console.log(msg);
-		};
-} ();
-
-function getSearchArgs() {
-	var parts = document.location.search.slice(1).split("&");
-	var result = { };
-	
-	$.each(parts, function () {
-		var pair = this.split("=");
-		
-		if (pair.length == 1)
-			result[pair[0]] = true;
-		else
-			result[pair[0]] = pair.slice(1).join("=");
-	})
-	
-	return result;
-};
-
-function createElement(tag, attrs, contents) {
-	var elem = $(document.createElement(tag));
-	
-	if (attrs)
-		elem.attr(attrs);
-	
-	if (contents)
-		$.each(contents, function () {
-			elem.append($(this).clone());
-		});
-	
-	return elem[0];
-}
-
-Mandelbrot2 = function () {
+Mandelbrot = function () {
 	var module = { };
 	
 	tileSize = 256/2; // Pixel size of one tile.
@@ -136,23 +78,12 @@ Mandelbrot2 = function () {
 	module.create = function (element) {
 		var object = { };
 		
-		// create dom elements
-		$(element).append([
-			createElement("div", { "class": "mandelbrot" }, [
-				createElement("div", { "class": "wrapper" }),
-				createElement("div", { "class": "controls" }, [
-					createElement("div", { "class": "minus" }),
-					createElement("div", { "class": "plus" })
-				])
-			])
-		]);
-		
 		var that = {
 			"visible": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }, // Number of visible tiles in each direction relative to the index.
 			"offset": { "x": 0, "y": 0 }, // Pixel offset of the top left tile relative to the viewer div.
 			"index": { "x": [], "y": [] }, // Index of the top left tile.
 			"viewer": {
-				"wrapper": $(".wrapper", element)[0],
+				"wrapper": $(".wrapper", element),
 				"size": { "x": 0, "y": 0 }
 			},
 			"tiles": { }, // Map for visible tiles from tile names to HTMLElements.
@@ -179,7 +110,7 @@ Mandelbrot2 = function () {
 			
 			if (slice == "") {
 				that.index = { "x": [1], "y": [1] };
-				setOffset(that.viewer.size.x / 2, that.viewer.size.x / 2);
+				setOffset(that.viewer.size.x / 2, that.viewer.size.y / 2);
 			} else {
 				that.index = indexFromName(slice);
 				setOffset(Math.floor((that.viewer.size.x - tileSize) / 2), Math.floor((that.viewer.size.y - tileSize) / 2));
@@ -197,7 +128,7 @@ Mandelbrot2 = function () {
 			that.offset.x = Math.floor(x);
 			that.offset.y = Math.floor(y);
 			
-			$(that.viewer.wrapper).css({
+			that.viewer.wrapper.css({
 				"left": that.offset.x,
 				"top": that.offset.y
 			});
@@ -238,7 +169,7 @@ Mandelbrot2 = function () {
 				//	$(this).css({ "opacity": 1 });
 					$(this).animate({ "opacity": 1 }, 400);
 				}).attr("src", "mandelbrot.sh/" + name + ".png");
-				$(that.viewer.wrapper).append(img);
+				that.viewer.wrapper.append(img);
 				that.tiles[name] = img;
 			};
 			
@@ -251,7 +182,7 @@ Mandelbrot2 = function () {
 			
 			if (clear) {
 				// Clear all tiles and recreate everything.
-				$(that.viewer.wrapper).empty();
+				that.viewer.wrapper.empty();
 				that.tiles = [];
 				
 				for (var iy = visible.ymin; iy < visible.ymax; iy += 1)
@@ -333,8 +264,8 @@ Mandelbrot2 = function () {
 				}
 			});
 			
-			$(".mandelbrot", element).dblclick(function (evt) {
-				var offset = $(".mandelbrot", element).offset();
+			$(element).dblclick(function (evt) {
+				var offset = $(this).offset();
 				
 				log([that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top)]);
 				moveOffset(that.viewer.size.x / 2 - (evt.pageX - offset.left), that.viewer.size.y / 2 - (evt.pageY - offset.top));
@@ -353,13 +284,9 @@ Mandelbrot2 = function () {
 			})
 			
 			// initialisation
-			console.log([that.offset.x, that.offset.y]);
 			updateSize();
-			console.log([that.offset.x, that.offset.y]);
 			updateFromHash();
-			console.log([that.offset.x, that.offset.y]);
 			updateVisible();
-			console.log([that.offset.x, that.offset.y]);
 		};
 		
 		// Zooms in on positive aguments and out on negative arguments.
