@@ -2,6 +2,7 @@ Mandelbrot = function () {
 	var module = { };
 	
 	tileSize = 256; // Pixel size of one tile.
+	numLayers = 2; // Number of "level of detail"s.
 	
 	function indexFixup(ind) {
 		var last = ind.pop();
@@ -137,27 +138,16 @@ Mandelbrot = function () {
 		function updateVisible() {
 			// TODO: Check that visible != that.visible.
 			var tiles = { };
+			var names = { };
 			
-			function tileName(ix, iy) {
-				return indexName({
-					"x": indexAdd(that.index.x, ix),
-					"y": indexAdd(that.index.y, iy)
-				});
-			};
-			
-			function createTile(ix, iy) {
-				var name = tileName(ix, iy);
+			function createTile(name, pos, size, lvl) {
 				var img = that.tiles[name];
 				
 				if (img == undefined) {
 					img = new Image();
 					
-					$(img).css({
-						"opacity": 0,
-						"left": ix * tileSize,
-						"top": iy * tileSize
-					}).load(function () {
-						$(this).animate({ "opacity": 1 }, 400);
+					$(img).css("opacity", 0).load(function () {
+						$(this).animate({ "opacity": .5 }, 400);
 					}).attr("src", "mandelbrot.sh/" + name + ".png");
 					
 					that.viewer.wrapper.append(img);
@@ -165,7 +155,51 @@ Mandelbrot = function () {
 					delete that.tiles[name];
 				}
 				
+				$(img).css({
+					"left": pos.x,
+					"top": pos.y,
+					"width": size,
+					"height": size,
+					"z-index": -lvl
+				});
+				
 				tiles[name] = img;
+			};
+			
+			function createLayer(nam, level) {
+				var names = { };
+				var factor = Math.pow(2, level);
+				var offset = {
+					"x": that.index.x[that.index.x.length - level - 1],
+					"y": that.index.y[that.index.y.length - level - 1]
+				};
+				
+				console.log([offset.x, offset.y]);
+				
+				$.each(nam, function (k, v) {
+					createTile(k, {
+						"x": v.x * tileSize,
+						"y": v.y * tileSize
+					}, factor * tileSize, level);
+					
+					names[k.slice(0, -1)] = {
+						"x": Math.floor((v.x - offset.x) / 2) * 2 + offset.x,
+						"y": Math.floor((v.y - offset.y) / 2) * 2 + offset.y
+					};
+					
+				//	console.log([k, v.x, v.y])
+					console.log([
+						k,
+						v.x,
+						v.y,
+						k.slice(0, -1),
+						names[k.slice(0, -1)].x,
+						names[k.slice(0, -1)].y
+					]);
+				});
+				
+				if (level < numLayers - 1)
+					createLayer(names, level + 1);
 			};
 			
 			var visible = {
@@ -175,13 +209,15 @@ Mandelbrot = function () {
 				"ymax": Math.ceil((that.viewer.size.y - that.offset.y) / tileSize),
 			};
 			
-		//	that.viewer.wrapper.empty();
-		//	that.tiles = { };
-			
 			for (var iy = visible.ymin; iy < visible.ymax; iy += 1)
 				for (var ix = visible.xmin; ix < visible.xmax; ix += 1)
-					createTile(ix, iy);
+					names[indexName({
+						"x": indexAdd(that.index.x, ix),
+						"y": indexAdd(that.index.y, iy)
+					})] = { "x": ix, "y": iy };
 			
+			createLayer(names, 0, { "x": 0, "y": 0 })
+				
 			$.each(that.tiles, function () {
 				$(this).remove();
 			})
