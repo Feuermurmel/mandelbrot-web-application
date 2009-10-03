@@ -232,12 +232,12 @@ Mandelbrot = function () {
 		
 		function init() {
 			// setup
-			$(".plus", element).click(function () {
+			$(".plus div", element).click(function () {
 				zoomIn();
 				updateVisible(true);
 				updateHash();
 			});
-			$(".minus", element).click(function () {
+			$(".minus div", element).click(function () {
 				zoomOut();
 				updateVisible(true);
 				updateHash();
