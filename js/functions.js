@@ -1,8 +1,8 @@
 Mandelbrot = function () {
 	var module = { };
 	
-	tileSize = 256; // Pixel size of one tile.
-	numLayers = 2; // Number of "level of detail"s.
+	tileSize = 256/2; // Pixel size of one tile.
+	numLayers = 5; // Number of "level of detail"s.
 	
 	function indexFixup(ind) {
 		var last = ind.pop();
@@ -28,7 +28,13 @@ Mandelbrot = function () {
 		}
 	};
 	
-	function indexName(ind) {
+	function indexValue(ind) {
+		return ind.reduce(function (s, v) {
+			return s * 2 + v;
+		}, 0);
+	}
+	
+	function indexToName(ind) {
 		var replace = [["a", "b"], ["c", "d"]]
 		var path = "";
 		
@@ -70,7 +76,6 @@ Mandelbrot = function () {
 	
 	module.create = function (element) {
 		var that = {
-			"visible": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 }, // Number of visible tiles in each direction relative to the index.
 			"offset": { "x": 0, "y": 0 }, // Pixel offset of the top left tile relative to the viewer div.
 			"index": { "x": [], "y": [] }, // Index of the top left tile.
 			"viewer": {
@@ -88,7 +93,7 @@ Mandelbrot = function () {
 				"y": that.offset.y - that.viewer.size.y / 2
 			};
 			
-			document.location.hash = "#" + indexName({
+			document.location.hash = "#" + indexToName({
 				"x": indexAdd(that.index.x, Math.floor(-offset.x / tileSize)),
 				"y": indexAdd(that.index.y, Math.floor(-offset.y / tileSize))
 			});
@@ -140,66 +145,48 @@ Mandelbrot = function () {
 			var tiles = { };
 			var names = { };
 			
-			function createTile(name, pos, size, lvl) {
-				var img = that.tiles[name];
-				
-				if (img == undefined) {
-					img = new Image();
-					
-					$(img).css("opacity", 0).load(function () {
-						$(this).animate({ "opacity": .5 }, 400);
-					}).attr("src", "mandelbrot.sh/" + name + ".png");
-					
-					that.viewer.wrapper.append(img);
-				} else {
-					delete that.tiles[name];
-				}
-				
-				$(img).css({
-					"left": pos.x,
-					"top": pos.y,
-					"width": size,
-					"height": size,
-					"z-index": -lvl
-				});
-				
-				tiles[name] = img;
-			};
-			
 			function createLayer(nam, level) {
 				var names = { };
 				var factor = Math.pow(2, level);
-				var offset = {
-					"x": that.index.x[that.index.x.length - level - 1],
-					"y": that.index.y[that.index.y.length - level - 1]
-				};
-				
-				console.log([offset.x, offset.y]);
+				var conts = [];
 				
 				$.each(nam, function (k, v) {
-					createTile(k, {
-						"x": v.x * tileSize,
-						"y": v.y * tileSize
-					}, factor * tileSize, level);
-					
 					names[k.slice(0, -1)] = {
-						"x": Math.floor((v.x - offset.x) / 2) * 2 + offset.x,
-						"y": Math.floor((v.y - offset.y) / 2) * 2 + offset.y
+						"x": "ac".indexOf(k.slice(-1)) < 0 ? v.x - factor : v.x,
+						"y": "ab".indexOf(k.slice(-1)) < 0 ? v.y - factor : v.y,
 					};
 					
-				//	console.log([k, v.x, v.y])
-					console.log([
-						k,
-						v.x,
-						v.y,
-						k.slice(0, -1),
-						names[k.slice(0, -1)].x,
-						names[k.slice(0, -1)].y
-					]);
+					conts.push(function () {
+						var img = that.tiles[k];
+						
+						if (img == undefined) {
+							img = new Image();
+							
+							$(img).css("opacity", 0).load(function () {
+								$(this).animate({ "opacity": 1 }, 400);
+							}).attr("src", "mandelbrot.sh/" + k + ".png");
+							
+							that.viewer.wrapper.append(img);
+						} else {
+							delete that.tiles[k];
+						}
+						
+						$(img).css({
+							"left": v.x * tileSize,
+							"top": v.y * tileSize,
+							"width": factor * tileSize,
+							"height": factor * tileSize,
+							"z-index": -level
+						});
+						
+						tiles[k] = img;
+					});
 				});
 				
 				if (level < numLayers - 1)
 					createLayer(names, level + 1);
+				
+				conts.map(function (v) { v(); });
 			};
 			
 			var visible = {
@@ -211,18 +198,17 @@ Mandelbrot = function () {
 			
 			for (var iy = visible.ymin; iy < visible.ymax; iy += 1)
 				for (var ix = visible.xmin; ix < visible.xmax; ix += 1)
-					names[indexName({
+					names[indexToName({
 						"x": indexAdd(that.index.x, ix),
 						"y": indexAdd(that.index.y, iy)
 					})] = { "x": ix, "y": iy };
 			
-			createLayer(names, 0, { "x": 0, "y": 0 })
-				
+			createLayer(names, 0);
+			
 			$.each(that.tiles, function () {
 				$(this).remove();
 			})
 			
-			that.visible = visible;
 			that.tiles = tiles;
 		};
 		
