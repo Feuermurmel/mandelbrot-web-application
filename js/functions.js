@@ -134,10 +134,10 @@ Mandelbrot = function () {
 		};
 		
 		// Adds new tiles and removes those, which aren't visible anymore.
-		function updateVisible(clear) {
-			var postFixUp = [];
-				
+		function updateVisible() {
 			// TODO: Check that visible != that.visible.
+			var tiles = { };
+			
 			function tileName(ix, iy) {
 				return indexName({
 					"x": indexAdd(that.index.x, ix),
@@ -145,49 +145,27 @@ Mandelbrot = function () {
 				});
 			};
 			
-			function removeTile(ix, iy) {
-				var name = tileName(ix, iy);
-				
-				$(that.tiles[name]).remove();
-				delete that.tiles[name];
-			};
-			
 			function createTile(ix, iy) {
-				var div = $(createElement("div"));
 				var name = tileName(ix, iy);
+				var img = that.tiles[name];
 				
-				function createImage(name, size, posx, posy) {
-					var img = new Image();
+				if (img == undefined) {
+					img = new Image();
 					
 					$(img).css({
 						"opacity": 0,
-						"width": size,
-						"height": size,
-						"left": posx * size,
-						"top": posy * size,
+						"left": ix * tileSize,
+						"top": iy * tileSize
 					}).load(function () {
 						$(this).animate({ "opacity": 1 }, 400);
 					}).attr("src", "mandelbrot.sh/" + name + ".png");
 					
-					return img;
-				};
+					that.viewer.wrapper.append(img);
+				} else {
+					delete that.tiles[name];
+				}
 				
-				div.css({
-					"left": ix * tileSize,
-					"top": iy * tileSize,
-				}).append(createImage(name, tileSize, 0, 0));
-				
-				postFixUp.push(function () {
-					div.append([
-						createImage(name + "a", tileSize / 2, 0, 0),
-						createImage(name + "b", tileSize / 2, 1, 0),
-						createImage(name + "c", tileSize / 2, 0, 1),
-						createImage(name + "d", tileSize / 2, 1, 1)
-					]);
-				})
-				
-				that.viewer.wrapper.append(div);
-				that.tiles[name] = div;
+				tiles[name] = img;
 			};
 			
 			var visible = {
@@ -197,36 +175,19 @@ Mandelbrot = function () {
 				"ymax": Math.ceil((that.viewer.size.y - that.offset.y) / tileSize),
 			};
 			
-			if (clear) {
-				// Clear all tiles and recreate everything.
-				that.viewer.wrapper.empty();
-				that.tiles = [];
-				
-				for (var iy = visible.ymin; iy < visible.ymax; iy += 1)
-					for (var ix = visible.xmin; ix < visible.xmax; ix += 1)
-						createTile(ix, iy);
-			} else {
-				var xmin = Math.min(that.visible.xmin, visible.xmin);
-				var ymin = Math.min(that.visible.ymin, visible.ymin);
-				var xmax = Math.max(that.visible.xmax, visible.xmax);
-				var ymax = Math.max(that.visible.ymax, visible.ymax);
-				
-				for (var iy = ymin; iy < ymax; iy += 1) {
-					for (var ix = xmin; ix < xmax; ix += 1) {
-						var before = that.visible.xmin <= ix && ix < that.visible.xmax && that.visible.ymin <= iy && iy < that.visible.ymax;
-						var after = visible.xmin <= ix && ix < visible.xmax && visible.ymin <= iy && iy < visible.ymax;
-						
-						if (before && !after)
-							removeTile(ix, iy);
-						else if (!before && after)
-							createTile(ix, iy);
-					};
-				};
-			}
+		//	that.viewer.wrapper.empty();
+		//	that.tiles = { };
 			
-			postFixUp.map(function (v) { v(); });
+			for (var iy = visible.ymin; iy < visible.ymax; iy += 1)
+				for (var ix = visible.xmin; ix < visible.xmax; ix += 1)
+					createTile(ix, iy);
+			
+			$.each(that.tiles, function () {
+				$(this).remove();
+			})
 			
 			that.visible = visible;
+			that.tiles = tiles;
 		};
 		
 		// Zooms in by a factor of two around the center of the viewer.
