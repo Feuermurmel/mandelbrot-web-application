@@ -237,6 +237,62 @@ Mandelbrot = function () {
 			setOffset((that.offset.x - indexOffset.x * tileSize + that.viewer.size.x / 2) / 2, (that.offset.y - indexOffset.y * tileSize + that.viewer.size.y / 2) / 2);
 		};
 		
+		function registerKeyEvents(element) {
+			var timerRunning = false;
+			var timerTime = 0;
+			var directions = {
+				37: { x: 1, y: 0, pressed: false },
+				38: { x: 0, y: 1, pressed: false },
+				39: { x: -1, y: 0, pressed: false },
+				40: { x: 0, y: -1, pressed: false }
+			}
+			
+			function setTimer(lastTime) {
+				timerRunning = true;
+				$(element).oneTime("50ms", function () {
+					var time = (new Date()).getTime();
+					var timeDelta = (time - lastTime) / 1000;
+					var moveX = 0, moveY = 0;
+					var delta = Math.round(200 - 170 / (timerTime + 1));
+					
+					console.log(delta);
+					
+					[37, 38, 39, 40].map(function (v) {
+						dir = directions[v];
+						
+						if (dir.pressed) {
+							moveX += dir.x;
+							moveY += dir.y;
+						}
+					});
+					
+					if (moveX != 0 || moveY != 0) {
+						timerTime += timeDelta;
+						moveOffset(moveX * delta, moveY * delta);
+						setTimer(time);
+					} else {
+						updateHash();
+						updateVisible();
+						timerRunning = false;
+						timerTime = 0;
+					}
+				});
+			}
+			
+			function handle(evt) {
+				dir = directions[evt.which];
+				
+				if (dir != undefined) {
+					dir.pressed = evt.type == "keydown";
+					
+					if (!timerRunning)
+						setTimer((new Date()).getTime());
+				}
+			}
+			
+			$(element).keydown(handle).keyup(handle);
+		}
+		
 		function init() {
 			// setup
 			$(".plus div", element).click(function () {
@@ -262,6 +318,8 @@ Mandelbrot = function () {
 				updateVisible();
 				updateHash();
 			});
+			
+			registerKeyEvents(window);
 			
 			$(document).everyTime("500ms", function () {
 				if (document.location.hash != that.lastHash) {
