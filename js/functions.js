@@ -129,10 +129,11 @@ Mandelbrot = function () {
 			that.offset.x = Math.floor(x);
 			that.offset.y = Math.floor(y);
 			
-			that.viewer.wrapper.css({
-				"left": that.offset.x,
-				"top": that.offset.y
-			});
+		//	that.viewer.wrapper.css({
+		//		"left": that.offset.x,
+		//		"top": that.offset.y
+		//	});
+			that.viewer.wrapper[0].style.webkitTransform = 'translate3d(' + that.offset.x + 'px, ' + that.offset.y + 'px, 0px)';
 		};
 		
 		function moveOffset(x, y) {
@@ -163,7 +164,7 @@ Mandelbrot = function () {
 							img = new Image();
 							
 							$(img).css("opacity", 0).load(function () {
-								$(this).animate({ "opacity": 1 }, 400);
+								$(this).animate({ "opacity": 1 });
 							}).attr("src", "mandelbrot.sh/" + k + ".png");
 							
 							that.viewer.wrapper.append(img);
@@ -253,9 +254,7 @@ Mandelbrot = function () {
 					var time = (new Date()).getTime();
 					var timeDelta = (time - lastTime) / 1000;
 					var moveX = 0, moveY = 0;
-					var delta = Math.round(200 - 170 / (timerTime + 1));
-					
-					console.log(delta);
+					var delta = Math.round(120 - 100 / (timerTime + 1));
 					
 					[37, 38, 39, 40].map(function (v) {
 						dir = directions[v];
@@ -270,6 +269,7 @@ Mandelbrot = function () {
 						timerTime += timeDelta;
 						moveOffset(moveX * delta, moveY * delta);
 						setTimer(time);
+						updateVisible();
 					} else {
 						updateHash();
 						updateVisible();
@@ -341,14 +341,6 @@ Mandelbrot = function () {
 			$(".controls", element).dblclick(function (evt) {
 				// So "double-clicking" on a control doesen't zoom in.
 				evt.stopPropagation();
-			});
-			
-			$(document).everyTime("500ms", function () {
-				if (document.location.hash != that.lastHash) {
-					updateFromHash();
-					updateVisible(true);
-					updateHash();
-				}
 			});
 			
 			$(window).resize(function () {
