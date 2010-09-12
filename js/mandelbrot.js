@@ -1,6 +1,4 @@
-Mandelbrot = function () {
-	var module = { };
-	
+mandelbrot = function () {
 	tileSize = 256/2; // Pixel size of one tile.
 	numLayers = 5; // Number of "level of detail"s.
 	
@@ -74,7 +72,7 @@ Mandelbrot = function () {
 		return f(ind.length);
 	}
 	
-	module.create = function (element) {
+	return function (element) {
 		var that = {
 			"offset": { "x": 0, "y": 0 }, // Pixel offset of the top left tile relative to the viewer div.
 			"index": { "x": [], "y": [] }, // Index of the top left tile.
@@ -83,7 +81,6 @@ Mandelbrot = function () {
 				"size": { "x": 0, "y": 0 }
 			},
 			"tiles": { }, // Map for visible tiles from tile names to HTMLElements.
-			"object": object, // self
 			"lastHash": ""
 		};
 		
@@ -306,7 +303,11 @@ Mandelbrot = function () {
 				updateHash();
 			});
 			
-			$(element).disableTextSelect().drag(function () {
+			$(element).bind("selectstart", function () {
+				return false;
+			});
+			
+			$(element).drag(function () {
 				that.dragStartOffset = {
 					"x": that.offset.x,
 					"y": that.offset.y
@@ -321,7 +322,7 @@ Mandelbrot = function () {
 			
 			registerKeyEvents(window);
 			
-			$(document).everyTime("500ms", function () {
+			timer("500ms", function () {
 				if (document.location.hash != that.lastHash) {
 					updateFromHash();
 					updateVisible(true);
@@ -357,6 +358,4 @@ Mandelbrot = function () {
 		
 		init();
 	};
-	
-	return module;
 } ();
