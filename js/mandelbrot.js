@@ -78,23 +78,21 @@ mandelbrot = function () {
 		var viewerWrapper = $(".wrapper", element);
 		var viewerSize = { "x": 0, "y": 0 };
 		var tiles = { }; // Map for visible tiles from tile names to HTMLElements.
-		var lastHash = "";
 		var dragStartOffset;
 		
 		function updateHash() {
 			var offsetX = offset.x - viewerSize.x / 2;
 			var offsetY = offset.y - viewerSize.y / 2;
-			
-			document.location.hash = "#" + indexToName({
+			var hash = indexToName({
 				"x": indexAdd(index.x, Math.floor(-offsetX / tileSize)),
 				"y": indexAdd(index.y, Math.floor(-offsetY / tileSize))
 			});
-			lastHash = document.location.hash;
+			
+			Hash.update(hash);
 		};
 		
-		function updateFromHash() {
-			lastHash = document.location.hash;
-			var slice = document.location.hash.split("").map(function (v) {
+		function updateFromHash(hash) {
+			var slice = hash.split("").map(function (v) {
 				if ("abcd".indexOf(v) < 0)
 					return "";
 				else
@@ -125,7 +123,7 @@ mandelbrot = function () {
 		//		"left": offset.x,
 		//		"top": offset.y
 		//	});
-			viewerWrapper[0].style.webkitTransform = 'translate3d(' + offset.x + 'px, ' + offset.y + 'px, 0px)';
+			viewerWrapper[0].style.webkitTransform = 'translate(' + offset.x + 'px, ' + offset.y + 'px)';
 		};
 		
 		function moveOffset(x, y) {
@@ -155,22 +153,28 @@ mandelbrot = function () {
 						if (img == undefined) {
 							img = new Image();
 							
-							$(img).css("opacity", 0).load(function () {
-								$(this).animate({ "opacity": 1 });
+							$(img).addClass('tile').load(function () {
+								$(img).css({ 'opacity': 1 });
 							}).attr("src", "mandelbrot.sh/" + k + ".png");
+							
+						//	$(img).css("opacity", 0).load(function () {
+						//		$(this).animate({ "opacity": 1 }, 25000);
+						//	}).attr("src", "mandelbrot.sh/" + k + ".png");
 							
 							viewerWrapper.append(img);
 						} else {
 							delete tiles[k];
 						}
 						
-						$(img).css({
-							"left": v.x * tileSize,
-							"top": v.y * tileSize,
-							"width": factor * tileSize,
-							"height": factor * tileSize,
-							"z-index": -level
-						});
+						img.style.webkitTransform = 'translate(' + v.x * tileSize + 'px, ' + v.y * tileSize + 'px) scale(' + factor / 2 + ', ' + factor / 2 + ')' ;
+						
+					//	$(img).css({
+					//		"left": v.x * tileSize,
+					//		"top": v.y * tileSize,
+					//		"width": factor * tileSize,
+					//		"height": factor * tileSize,
+					//		"z-index": -level
+					//	});
 						
 						newTiles[k] = img;
 					});
@@ -310,19 +314,17 @@ mandelbrot = function () {
 			}, function (evt) {
 				setOffset(dragStartOffset.x + evt.offsetX, dragStartOffset.y + evt.offsetY);
 			}, function (evt) {
-				delete dragStartOffset;
+				dragStartOffset = null;
 				updateVisible();
 				updateHash();
 			});
 			
 			registerKeyEvents(window);
 			
-			timer("500ms", function () {
-				if (document.location.hash != lastHash) {
-					updateFromHash();
-					updateVisible(true);
-					updateHash();
-				}
+			Hash.onUpdate(function (hash) {
+				updateFromHash(hash);
+				updateVisible(true);
+				updateHash();
 			});
 			
 			$(element).dblclick(function (evt) {
@@ -347,7 +349,7 @@ mandelbrot = function () {
 			
 			// initialisation
 			updateSize();
-			updateFromHash();
+			updateFromHash(document.location.hash);
 			updateVisible();
 		};
 		

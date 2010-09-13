@@ -9,7 +9,7 @@
  *
  **/
 
-timer = (function () {
+Timer = (function () {
 	function parseTime(value) {
 		if (typeof value == "number") {
 			return Math.floor(value * 1000);
@@ -92,20 +92,16 @@ timer = (function () {
 	// timer([ delay : Number | String = interval ], interval : Number | String, handler : Function <Timer>, [ cleanup : Function <Timer> ], [ times : Integer = inf ], [ belay : boolean = false ]) : Timer
 	// timer(handler : Function <Timer>, [ cleanup : Function <Timer> ], delay : Number | String) : Timer	
 	return function () {
-		var type = function (val) {
-			return $.isFunction(val) ? "function" : typeof val;
-		};
-		
 		var args = $.makeArray(arguments);
 		var numArgs = args.length;
 		var opts = { };
 		
-		if (type(args[0]) == "number" || type(args[0]) == "string") {
+		if (typeof args[0] == "number" || typeof args[0] == "string") {
 			// We're being called with the first form.
 			opts.delay = args[0];
 			args.shift();
 			
-			if (type(args[0]) == "number" || type(args[0]) == "string") {
+			if (typeof args[0] == "number" || typeof args[0] == "string") {
 				// We have a delay parameter.
 				opts.interval = args[0];
 				args.shift();
@@ -113,14 +109,14 @@ timer = (function () {
 				opts.interval = opts.delay;
 			}
 			
-			if (type(args[0]) == "function") {
+			if (typeof args[0] == "function") {
 				opts.handler = args[0];
 				args.shift();
 			} else {
 				throw "Excepted a function as argument " + (numArgs - args.length + 1) + ".";
 			}
 			
-			if (type(args[0]) == "function") {
+			if (typeof args[0] == "function") {
 				// We have a cleanup parameter.
 				opts.cleanup = args[0];
 				args.shift();
@@ -128,7 +124,7 @@ timer = (function () {
 				opts.cleanup = $.noop;
 			}
 			
-			if (type(args[0]) == "number") {
+			if (typeof args[0] == "number") {
 				// We have a times parameter.
 				opts.times = args[0];
 				args.shift();
@@ -136,14 +132,14 @@ timer = (function () {
 				opts.times = Infinity;
 			}
 			
-			if (type(args[0]) == "boolean") {
+			if (typeof args[0] == "boolean") {
 				// We have a belay parameter.
 				opts.belay = args[0];
 				args.shift();
 			} else {
 				opts.belay = false;
 			}
-		} else if (type(args[0]) == "function") {
+		} else if (typeof args[0] == "function") {
 			// We're being called with the second form.
 			opts.times = 1;
 			opts.handler = args[0];
@@ -151,7 +147,7 @@ timer = (function () {
 			opts.belay = false;
 			args.shift();
 			
-			if (type(args[0]) == "function") {
+			if (typeof args[0] == "function") {
 				// We have a cleanup parameter.
 				opts.cleanup = args[0];
 				args.shift();
@@ -159,7 +155,7 @@ timer = (function () {
 				opts.cleanup = $.noop;
 			}
 			
-			if (type(args[0]) == "number" || type(args[0]) == "string") {
+			if (typeof args[0] == "number" || typeof args[0] == "string") {
 				// We have a delay parameter.
 				opts.delay = args[0];
 				args.shift();

@@ -17,6 +17,13 @@ body {
 	margin: 0px;
 }
 
+#mandelbrot .tile {
+	opacity: 0;
+	-webkit-transform-origin: top left;
+	-webkit-transition-property: opacity;
+	-webkit-transition-duration: 0.25s;
+}
+
 #mandelbrot .controls {
 	left: 5px;
 	top: 5px;
