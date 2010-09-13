@@ -1,6 +1,6 @@
 mandelbrot = function () {
 	tileSize = 256/2; // Pixel size of one tile.
-	numLayers = 5; // Number of "level of detail"s.
+	numLayers = 10; // Number of "level of detail"s.
 	
 	function cssFunction(name) {
 		return name + '(' + util.makeArray(arguments).slice(1).join(', ') + ')'
@@ -123,10 +123,6 @@ mandelbrot = function () {
 			offset.x = Math.floor(x);
 			offset.y = Math.floor(y);
 			
-		//	viewerWrapper.css({
-		//		"left": offset.x,
-		//		"top": offset.y
-		//	});
 			viewerWrapper[0].style.webkitTransform = cssFunction('translate3d', offset.x + 'px', offset.y + 'px', '0px');
 		};
 		
@@ -160,10 +156,6 @@ mandelbrot = function () {
 							$(img).addClass('tile').load(function () {
 								$(img).css({ 'opacity': 1 });
 							}).attr("src", "mandelbrot.sh/" + k + ".png");
-							
-						//	$(img).css("opacity", 0).load(function () {
-						//		$(this).animate({ "opacity": 1 }, 25000);
-						//	}).attr("src", "mandelbrot.sh/" + k + ".png");
 							
 							viewerWrapper.append(img);
 						} else {
