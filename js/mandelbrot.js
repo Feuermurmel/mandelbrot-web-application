@@ -2,6 +2,10 @@ mandelbrot = function () {
 	tileSize = 256/2; // Pixel size of one tile.
 	numLayers = 5; // Number of "level of detail"s.
 	
+	function cssFunction(name) {
+		return name + '(' + util.makeArray(arguments).slice(1).join(', ') + ')'
+	}
+	
 	function indexFixup(ind) {
 		var last = ind.pop();
 		
@@ -123,7 +127,7 @@ mandelbrot = function () {
 		//		"left": offset.x,
 		//		"top": offset.y
 		//	});
-			viewerWrapper[0].style.webkitTransform = 'translate(' + offset.x + 'px, ' + offset.y + 'px)';
+			viewerWrapper[0].style.webkitTransform = cssFunction('translate3d', offset.x + 'px', offset.y + 'px', '0px');
 		};
 		
 		function moveOffset(x, y) {
@@ -166,15 +170,8 @@ mandelbrot = function () {
 							delete tiles[k];
 						}
 						
-						img.style.webkitTransform = 'translate(' + v.x * tileSize + 'px, ' + v.y * tileSize + 'px) scale(' + factor / 2 + ', ' + factor / 2 + ')' ;
-						
-					//	$(img).css({
-					//		"left": v.x * tileSize,
-					//		"top": v.y * tileSize,
-					//		"width": factor * tileSize,
-					//		"height": factor * tileSize,
-					//		"z-index": -level
-					//	});
+						img.style.webkitTransform = cssFunction('translate3d', v.x * tileSize + 'px', v.y * tileSize + 'px', '0px') + cssFunction('scale3d', factor / 2, factor / 2, 1);
+						img.style.zIndex = -level
 						
 						newTiles[k] = img;
 					});
