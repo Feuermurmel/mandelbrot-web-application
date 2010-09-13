@@ -92,7 +92,7 @@ Timer = (function () {
 	// timer([ delay : Number | String = interval ], interval : Number | String, handler : Function <Timer>, [ cleanup : Function <Timer> ], [ times : Integer = inf ], [ belay : boolean = false ]) : Timer
 	// timer(handler : Function <Timer>, [ cleanup : Function <Timer> ], delay : Number | String) : Timer	
 	return function () {
-		var args = $.makeArray(arguments);
+		var args = util.makeArray(arguments);
 		var numArgs = args.length;
 		var opts = { };
 		
@@ -121,7 +121,7 @@ Timer = (function () {
 				opts.cleanup = args[0];
 				args.shift();
 			} else {
-				opts.cleanup = $.noop;
+				opts.cleanup = lambda.identity;
 			}
 			
 			if (typeof args[0] == "number") {
@@ -152,7 +152,7 @@ Timer = (function () {
 				opts.cleanup = args[0];
 				args.shift();
 			} else {
-				opts.cleanup = $.noop;
+				opts.cleanup = lambda.identity;
 			}
 			
 			if (typeof args[0] == "number" || typeof args[0] == "string") {

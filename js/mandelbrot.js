@@ -199,9 +199,13 @@ mandelbrot = function () {
 			
 			createLayer(names, 0);
 			
-			$.each(tiles, function () {
+			lambda.map(tiles, function (k, v) {
+				$(v).remove();
+			});
+			
+		/*	$.each(tiles, function () {
 				$(this).remove();
-			})
+			})*/
 			
 			tiles = newTiles;
 		};
