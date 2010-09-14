@@ -29,23 +29,12 @@ body {
 	top: 5px;
 }
 
-#mandelbrot .controls .minus {
-	
-}
-
-#mandelbrot .controls div {
-	width: 32px;
-	height: 32px;
-	background-image: url(../img/zoom.png);
-	background-position: 0px 0px;
-}
-
-#mandelbrot .controls * div {
+#mandelbrot .controls * {
 	width: 16px;
 	height: 16px;
-	top: 8px;
-	left: 8px;
-	z-index: 1;
+	border-width: 8px;
+	-webkit-border-image: url(../img/button-shadow.png) 8 8 8 8 repeat;
+	background-position: 0px 0px;
 	cursor: pointer;
 }
 
@@ -57,18 +46,28 @@ body {
 	left: 20px;
 }
 
-#mandelbrot .controls .minus div {
-	background-position: -8px -40px;
+#mandelbrot .controls * * {
+	width: 16px;
+	height: 16px;
+	border-width: 0px;
+	background-image: url(../img/buttons.png);
+	background-position: 0px 0px;
+	z-index: 1;
+	cursor: pointer;
 }
 
-#mandelbrot .controls .plus div {
-	background-position: -40px -40px;
+#mandelbrot .controls * {
+	background-position-y: 0px;
 }
 
-#mandelbrot .controls .minus :hover {
-	background-position: -8px -72px;
+#mandelbrot .controls * :hover {
+	background-position-y: -16px;
 }
 
-#mandelbrot .controls .plus :hover {
-	background-position: -40px -72px;
+#mandelbrot .controls .minus * {
+	background-position-x: 0px;
+}
+
+#mandelbrot .controls .plus * {
+	background-position-x: -16px;
 }
