@@ -1,6 +1,7 @@
 mandelbrot = function () {
-	tileSize = 256/2; // Pixel size of one tile.
-	numLayers = 10; // Number of "level of detail"s.
+	var tileImageSize = 256; // Pixel size of one tile.
+	var tileSize = 128; // Display size of one tile.
+	var numLayers = 10; // Number of "level of detail"s.
 	
 	function cssFunction(name) {
 		return name + '(' + util.makeArray(arguments).slice(1).join(', ') + ')'
@@ -162,7 +163,7 @@ mandelbrot = function () {
 							delete tiles[k];
 						}
 						
-						img.style.webkitTransform = cssFunction('translate3d', v.x * tileSize + 'px', v.y * tileSize + 'px', '0px') + cssFunction('scale3d', factor / 2, factor / 2, 1);
+						img.style.webkitTransform = cssFunction('translate3d', v.x * tileSize + 'px', v.y * tileSize + 'px', '0px') + cssFunction('scale3d', factor * tileSize / tileImageSize, factor * tileSize / tileImageSize, 1);
 						img.style.zIndex = -level
 						
 						newTiles[k] = img;
