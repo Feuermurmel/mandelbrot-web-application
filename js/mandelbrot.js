@@ -156,7 +156,7 @@ mandelbrot = function () {
 							
 							$(img).addClass('tile').load(function () {
 								$(img).css({ 'opacity': 1 });
-							}).attr("src", "mandelbrot.sh/" + k + ".png");
+							}).attr("src", "bin/mandelbrot.sh/" + k + ".png");
 							
 							viewerWrapper.append(img);
 						} else {

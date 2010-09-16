@@ -1,9 +1,9 @@
-all: mandelbrot cache
+all: bin/mandelbrot cache
 
 %.o: %.c
 	gcc -O3 -Wall -Werror -std=gnu99 -o $@ -c $<
 
-mandelbrot: mandelbrot.o
+bin/mandelbrot: bin/mandelbrot.o
 	rm -rf cache
 	gcc -o $@ $^
 
@@ -12,4 +12,4 @@ cache:
 	chmod a+rw cache
 
 clean:
-	rm -rf mandelbrot cache
+	rm -rf bin/mandelbrot cache

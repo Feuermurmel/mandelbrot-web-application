@@ -29,7 +29,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_NAME")
 SIZE=256
 
 if echo "$PATH_INFO" | grep -qE '/([abcd])+\.png'; then
-	CACHE="cache/$PATH_INFO"
+	CACHE="../cache/$PATH_INFO"
 	
 	if ! [ -e "$CACHE" ]; then
 		INFO=$(parse_path "$(echo "$PATH_INFO" | sed -r 's/\.png$//')")
