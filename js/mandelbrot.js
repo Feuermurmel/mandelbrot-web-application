@@ -8,14 +8,16 @@ mandelbrot = function () {
 	}
 	
 	function indexFixup(ind) {
-		var last = ind.pop();
-		
-		if (last != 0 && last != 1 && ind.length > 0) {
-			ind[ind.length - 1] += Math.floor(last / 2);
-			ind = indexFixup(ind);
+		if (ind.length > 1) {
+			var last = ind.pop();
+			
+			if (last != 0 && last != 1 && ind.length > 0) {
+				ind[ind.length - 1] += Math.floor(last / 2);
+				ind = indexFixup(ind);
+			}
+			
+			ind.push(Math.abs(last % 2));
 		}
-		
-		ind.push(Math.abs(last % 2));
 		
 		return ind;
 	}
@@ -143,10 +145,11 @@ mandelbrot = function () {
 				var conts = [];
 				
 				$.each(nam, function (k, v) {
-					names[k.slice(0, -1)] = {
-						"x": "ac".indexOf(k.slice(-1)) < 0 ? v.x - factor : v.x,
-						"y": "ab".indexOf(k.slice(-1)) < 0 ? v.y - factor : v.y,
-					};
+					var x = "ac".indexOf(k.slice(-1)) < 0 ? v.x - factor : v.x;
+					var y = "ab".indexOf(k.slice(-1)) < 0 ? v.y - factor : v.y;
+					
+					if (k != "")
+						names[k.slice(0, -1)] = { x: x, y: y }; 
 					
 					conts.push(function () {
 						var img = tiles[k];
@@ -183,22 +186,21 @@ mandelbrot = function () {
 				"ymax": Math.ceil((viewerSize.y - offset.y) / tileSize),
 			};
 			
-			for (var iy = visible.ymin; iy < visible.ymax; iy += 1)
-				for (var ix = visible.xmin; ix < visible.xmax; ix += 1)
-					names[indexToName({
-						"x": indexAdd(index.x, ix),
-						"y": indexAdd(index.y, iy)
-					})] = { "x": ix, "y": iy };
+			for (var iy = visible.ymin; iy < visible.ymax; iy += 1) {
+				for (var ix = visible.xmin; ix < visible.xmax; ix += 1) {
+					var x = indexAdd(index.x, ix);
+					var y = indexAdd(index.y, iy);
+					
+					if (0 <= x[0] && x[0] <= 1 && 0 <= y[0] && y[0] <= 1)
+						names[indexToName({ x: x, y: y })] = { x: ix, y: iy };
+				}
+			}
 			
 			createLayer(names, 0);
 			
 			lambda.map(tiles, function (k, v) {
 				$(v).remove();
 			});
-			
-		/*	$.each(tiles, function () {
-				$(this).remove();
-			})*/
 			
 			tiles = newTiles;
 		};
