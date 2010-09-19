@@ -87,6 +87,13 @@ mandelbrot = function () {
 		var tiles = { }; // Map for visible tiles from tile names to HTMLElements.
 		var dragStartOffset;
 		
+		var progress = Progress(function (p) {
+			if (p == 1)
+				document.title = "Mandelbrot"
+			else
+				document.title = "Mandelbrot (" + Math.round(p * 100) + "%)"
+		});
+		
 		function updateHash() {
 			var offsetX = offset.x - viewerSize.x / 2;
 			var offsetY = offset.y - viewerSize.y / 2;
@@ -149,7 +156,7 @@ mandelbrot = function () {
 					var y = "ab".indexOf(k.slice(-1)) < 0 ? v.y - factor : v.y;
 					
 					if (k != "")
-						names[k.slice(0, -1)] = { x: x, y: y }; 
+						names[k.slice(0, -1)] = { x: x, y: y };
 					
 					conts.push(function () {
 						var img = tiles[k];
@@ -157,7 +164,15 @@ mandelbrot = function () {
 						if (img == undefined) {
 							img = new Image();
 							
+							$(img).data('mandelbrot', { isGoal: true, isDone: false });
+							progress.addGoal();
+							
 							$(img).addClass('tile').load(function () {
+								$(img).data('mandelbrot').isDone = true;
+								
+								if ($(img).data('mandelbrot').isGoal)
+									progress.addDone();
+								
 								$(img).css({ 'opacity': 1 });
 							}).attr("src", "bin/mandelbrot.sh/" + k + ".png");
 							
@@ -199,6 +214,12 @@ mandelbrot = function () {
 			createLayer(names, 0);
 			
 			lambda.map(tiles, function (k, v) {
+				progress.removeGoal();
+				$(v).data('mandelbrot').isGoal = false;
+				
+				if ($(v).data('mandelbrot').isDone)
+					progress.removeDone();
+				
 				$(v).remove();
 			});
 			
