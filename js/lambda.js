@@ -91,5 +91,15 @@ lambda = {
 				res[i] = fn(i, obj[i]);
 		
 		return res;
+	},
+	filter: function (obj, fn) {
+		var res = { };
+		
+		for (i in obj)
+			if (obj.hasOwnProperty(i))
+				if (fn(i, obj[i]))
+					res[i] = obj[i];
+		
+		return res;
 	}
 }

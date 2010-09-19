@@ -1,7 +1,5 @@
 Progress = function (onUpdate) {
-	var goal = 0;
-	var done = 0;
-	var offset = 0; // done tiles that aren't count as goal nor as done.
+	var goals = { };
 	var isUpdating = false;
 	var lastSetGoal = null;
 	
@@ -10,25 +8,33 @@ Progress = function (onUpdate) {
 	}
 	
 	function update(p) {
-		if (done >= goal)
+		var goal = 0;
+		var done = 0;
+		
+		lambda.map(goals, function (k, v) {
+			goal += 1;
+			done += v;
+		});
+		
+		if (done == goal)
 			isUpdating = false;
 		else if (now() - lastSetGoal > 1)
 			isUpdating = true;
 		
 		if (goal != 0 && isUpdating)
-			onUpdate((done - offset) / (goal - offset));
+			onUpdate(done / goal);
 		else
 			onUpdate(1);
-		
-		console.log([done, goal, offset])
 	}
 	
-	function changeGoal(v) {
-		goal += v;
+	function changedGoals() {
 		lastSetGoal = now();
 		
-		if (!isUpdating || offset > done)
-			offset = done;
+		if (!isUpdating) {
+			goals = lambda.filter(goals, function (k, v) {
+				return !v;
+			});
+		}
 		
 		update();
 	}
@@ -36,19 +42,17 @@ Progress = function (onUpdate) {
 	// For every call to addGoal(), there must be a call to removeGoal().
 	// For every call to addDone(), there must be a call to removeDone().
 	return {
-		addGoal: function () {
-			changeGoal(1);
+		add: function (id) {
+			goals[id] = false;
+			changedGoals();
 		},
-		removeGoal: function () {
-			changeGoal(-1);
+		remove: function (id) {
+			delete goals[id];
+			changedGoals();
 		},
-		addDone: function () {
-			done += 1;
+		done: function (id) {
+			goals[id] = true;
 			update();
 		},
-		removeDone: function () {
-			done -= 1;
-			update();
-		}
 	};
 };

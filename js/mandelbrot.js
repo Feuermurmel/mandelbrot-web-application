@@ -163,16 +163,10 @@ mandelbrot = function () {
 						
 						if (img == undefined) {
 							img = new Image();
-							
-							$(img).data('mandelbrot', { isGoal: true, isDone: false });
-							progress.addGoal();
+							progress.add(k);
 							
 							$(img).addClass('tile').load(function () {
-								$(img).data('mandelbrot').isDone = true;
-								
-								if ($(img).data('mandelbrot').isGoal)
-									progress.addDone();
-								
+								progress.done(k);
 								$(img).css({ 'opacity': 1 });
 							}).attr("src", "bin/mandelbrot.sh/" + k + ".png");
 							
@@ -214,12 +208,7 @@ mandelbrot = function () {
 			createLayer(names, 0);
 			
 			lambda.map(tiles, function (k, v) {
-				progress.removeGoal();
-				$(v).data('mandelbrot').isGoal = false;
-				
-				if ($(v).data('mandelbrot').isDone)
-					progress.removeDone();
-				
+				progress.remove(k);
 				$(v).remove();
 			});
 			
