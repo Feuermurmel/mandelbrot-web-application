@@ -5,7 +5,7 @@ all: bin/mandelbrot cache
 
 bin/mandelbrot: bin/mandelbrot.o
 	rm -rf cache
-	gcc -o $@ $^
+	gcc -L/opt/local/lib/ -lpng -o $@ $^
 
 cache:
 	mkdir cache
