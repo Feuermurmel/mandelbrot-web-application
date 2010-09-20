@@ -35,7 +35,6 @@ body {
 	border-width: 8px;
 	-webkit-border-image: url(../img/button-shadow.png) 8 8 8 8 repeat;
 	background-position: 0px 0px;
-	cursor: pointer;
 }
 
 #mandelbrot .controls .minus {

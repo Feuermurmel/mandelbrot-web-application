@@ -313,10 +313,7 @@ mandelbrot = function () {
 			});
 			
 			$(element).drag(function () {
-				dragStartOffset = {
-					"x": offset.x,
-					"y": offset.y
-				};
+				dragStartOffset = { x: offset.x, y: offset.y };
 			}, function (evt) {
 				setOffset(dragStartOffset.x + evt.offsetX, dragStartOffset.y + evt.offsetY);
 			}, function (evt) {
