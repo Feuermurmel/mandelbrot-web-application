@@ -296,7 +296,6 @@ int main (int argc, char ** const argv) {
 			if (ret == -1)
 				return 1;
 			
-				fprintf(stderr, "cachePath: %s\n", cachePath);
 			if (stat(cachePath, &dummyStat) != 0) {
 				struct color * image = colorImage(CONFIGURATION_CGI_IMAGE_SIZE, origin, range, CONFIGURATION_DFAULT_MAX_INTERATIONS);
 				FILE * file = fopen(cachePath, "w");
@@ -304,9 +303,11 @@ int main (int argc, char ** const argv) {
 				png_structp png_ptr;
 				struct color ** rows = malloc(CONFIGURATION_CGI_IMAGE_SIZE * sizeof (struct color *));
 				
-				fprintf(stderr, "file: %p\n", file);
-				if (file == NULL)
+				if (file == NULL) {
+					fprintf(stderr, "Could not create file: %s\n", cachePath);
+					
 					return 1;
+				}
 				
 				for (int i = 0; i < CONFIGURATION_CGI_IMAGE_SIZE; i += 1)
 					rows[i] = image + CONFIGURATION_CGI_IMAGE_SIZE * i;
