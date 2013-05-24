@@ -29,9 +29,6 @@
 /* Inverse speed at which the color cycles become longer. */
 #define CONFIGURATION_DFAULT_GRADIENT_SLOPE 100
 
-/* Output image size when used as a CGI script. */
-#define CONFIGURATION_CGI_IMAGE_SIZE 256
-
 /* Output directory for images when running as a CGI script. */
 #define CONFIGURATION_CGI_CACHE_DIR_PATH "../cache"
 
@@ -202,139 +199,68 @@ fail:
 }
 
 int main (int argc, char ** const argv) {
-	char * scriptName = getenv("SCRIPT_NAME");
-	
-	if (scriptName == NULL) {
-		if (argc < 4 || argc > 7) {
-			fprintf(stderr,
-				"Usage: %s <re> <im> <range> [ <size> [ <iter> [ <grad> ] ] ]\n"
-				"Where:\n"
-				"    <re>, <im>: Coordinates of the upper left corner.\n"
-				"    <range>: Coordinate range to include in both directions.\n"
-				"    <size>: Pixel length of one side of the image square.\n"
-				"    <iter>: Maximum number of iterations.\n"
-				/* "    <grad>: Number of colors in the coloring gradient.\n" */,
-				argv[0]);
+	if (argc < 5 || argc > 7) {
+		fprintf(stderr,
+			"Usage: %s <file> <re> <im> <range> [ <size> [ <iter> ] ]\n"
+			"Where:\n"
+			"    <file>: File to write the output to. The PNG file format is used."
+			"    <re>, <im>: Coordinates of the upper left corner.\n"
+			"    <range>: Coordinate range to include in both directions.\n"
+			"    <size>: Pixel length of one side of the image square.\n"
+			"    <iter>: Maximum number of iterations.\n",
+			argv[0]);
+		
+		return 1;
+	} else {
+		double range;
+		struct complex_d origin;
+		int size = CONFIGURATION_DFAULT_IMAGE_SIZE;
+		iterations_t max_iterations = CONFIGURATION_DFAULT_MAX_INTERATIONS;
+		
+		if (argc > 5)
+			size = strtol(argv[5], NULL, 10);
+		if (argc > 6)
+			max_iterations = strtol(argv[6], NULL, 10);
+		
+		range = strtod(argv[4], NULL);
+		
+		origin = (struct complex_d) {
+			strtod(argv[2], NULL),
+			strtod(argv[3], NULL)
+		};
+		
+		char * file_path = argv[1];
+		FILE * file = fopen(file_path, "w");
+		
+		if (file == NULL) {
+			fprintf(stderr, "Could not open file: %s", file_path);
 			
 			return 1;
-		} else {
-			double range;
-			struct complex_d origin;
-			int size = CONFIGURATION_DFAULT_IMAGE_SIZE;
-			iterations_t max_iterations = CONFIGURATION_DFAULT_MAX_INTERATIONS;
-			
-			if (argc > 4)
-				size = strtol(argv[4], NULL, 10);
-			if (argc > 5)
-				max_iterations = strtol(argv[5], NULL, 10);
-			
-			range = strtod(argv[3], NULL);
-			
-			origin = (struct complex_d) {
-				strtod(argv[1], NULL),
-				strtod(argv[2], NULL)
-			};
-			
-			{
-				struct color * image = colorImage(size, origin, range, max_iterations);
-							
-				if (image == NULL)
-					return 1;
-				
-				write(1, image, sizeof (struct color) * size * size);
-				
-				free(image);
-			}
-			
-			return 0;
-		}
-	} else {
-		char * pathInfo = getenv("PATH_INFO");
-		int iPath = 0, iNameStart, iNameEnd;
-		struct complex_d origin = { -2., -2. };
-		double range = 4.;
-		
-		while (pathInfo[iPath] == '/')
-			iPath += 1;
-		
-		iNameStart = iPath;
-		
-		while ('a' <= pathInfo[iPath] && pathInfo[iPath] <= 'd') {
-			range /= 2.;
-			
-			if (pathInfo[iPath] == 'b' || pathInfo[iPath] == 'd')
-				origin.re += range;
-			
-			if (pathInfo[iPath] == 'c' || pathInfo[iPath] == 'd')
-				origin.im += range;
-			
-			iPath += 1;
 		}
 		
-		iNameEnd = iPath;
-		
-		if (strcmp(pathInfo + iPath, ".png") != 0) {
-			printf(
-				"Status: 404 Object not found\n"
-				"\n");
-		} else {
-			char * name, * cachePath, * cacheURL;
-			int iNameLen = iNameEnd - iNameStart, ret;
-			struct stat dummyStat;
+		{
+			struct color * image = colorImage(size, origin, range, max_iterations);
+			png_infop info_ptr;
+			png_structp png_ptr;
+			struct color ** rows = malloc(size * sizeof (struct color *));
 			
-			name = malloc(iNameLen + 1);
-			memcpy(name, pathInfo + iNameStart, iNameLen);
-			name[iNameLen] = 0;
+			for (int i = 0; i < size; i += 1)
+				rows[i] = image + size * i;
 			
-			ret = asprintf(&cachePath, "%s/%s.png", CONFIGURATION_CGI_CACHE_DIR_PATH, name);
+			png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 			
-			if (ret == -1)
-				return 1;
+			info_ptr = png_create_info_struct(png_ptr);
 			
-			ret = asprintf(&cacheURL, "%s/%s", dirname(scriptName), cachePath);
+			png_init_io(png_ptr, file);
+			png_set_IHDR(png_ptr, info_ptr, size, size, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+			png_write_info(png_ptr, info_ptr);
+			png_write_image(png_ptr, (png_bytepp) rows);
+			png_write_end(png_ptr, NULL);
 			
-			if (ret == -1)
-				return 1;
-			
-			if (stat(cachePath, &dummyStat) != 0) {
-				struct color * image = colorImage(CONFIGURATION_CGI_IMAGE_SIZE, origin, range, CONFIGURATION_DFAULT_MAX_INTERATIONS);
-				FILE * file = fopen(cachePath, "w");
-				png_infop info_ptr;
-				png_structp png_ptr;
-				struct color ** rows = malloc(CONFIGURATION_CGI_IMAGE_SIZE * sizeof (struct color *));
-				
-				if (file == NULL) {
-					fprintf(stderr, "Could not create file: %s\n", cachePath);
-					
-					return 1;
-				}
-				
-				for (int i = 0; i < CONFIGURATION_CGI_IMAGE_SIZE; i += 1)
-					rows[i] = image + CONFIGURATION_CGI_IMAGE_SIZE * i;
-				
-				png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-				
-				info_ptr = png_create_info_struct(png_ptr);
-				
-				png_init_io(png_ptr, file);
-				png_set_IHDR(png_ptr, info_ptr, CONFIGURATION_CGI_IMAGE_SIZE, CONFIGURATION_CGI_IMAGE_SIZE, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-				png_write_info(png_ptr, info_ptr);
-				png_write_image(png_ptr, (png_bytepp) rows);
-				png_write_end(png_ptr, NULL);
-				fclose(file);
-				
-				free(rows);
-			}
-			
-			printf(
-				"Location: %s\n"
-				"\n",
-				cacheURL);
-			
-			free(name);
-			free(cachePath);
-			free(cacheURL);
+			free(rows);
 		}
+		
+		fclose(file);
 		
 		return 0;
 	}
