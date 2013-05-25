@@ -11,6 +11,7 @@
 #include <png.h>
 
 #define until(a) while (!(a))
+#define length(array) (sizeof (array) / sizeof (*array))
 
 /* Configurations for mandelbrot application */
 
@@ -24,7 +25,7 @@
 #define CONFIGURATION_DFAULT_MAX_INTERATIONS 65000
 
 /* Relative length of a color cycle in the coloring gradient. */
-#define CONFIGURATION_DFAULT_GRADIENT_INTERVAL 30
+#define CONFIGURATION_DFAULT_GRADIENT_INTERVAL 3
 
 /* Inverse speed at which the color cycles become longer. */
 #define CONFIGURATION_DFAULT_GRADIENT_SLOPE 100
@@ -146,16 +147,24 @@ struct color * gradient(int num) {
 	double const interval = CONFIGURATION_DFAULT_GRADIENT_INTERVAL;
 	double const slope = CONFIGURATION_DFAULT_GRADIENT_SLOPE;
 	
+	struct color colors[] = { { 255.996, 255.996, 255.996 }, { 230.898, 255.996, 191.746 }, { 164.637, 212.824, 112.438 }, { 81.316, 117.457, 53.203 }, { 46.180, 69.270, 27.105 }, { 33.125, 42.164, 30.117 }, { 36.578, 41.129, 45.578 }, { 58.441, 71.656, 83.172 }, { 125.488, 150.586, 166.648 }, { 190.742, 211.824, 239.934 }, { 231.902, 250.977, 254.992 } };
+	
 	if (buf == NULL)
 		goto fail;
 	
 	for (int i = 0; i < num; i += 1) {
 		double x = log((double) i / slope + 1.) * slope / interval;
 		
+		int n = floor(x);
+		double a2 = x - n;
+		double a1 = 1 - a2;
+		struct color c1 = colors[n % length(colors)];
+		struct color c2 = colors[(n + 1) % length(colors)];
+		
 		buf[i] = (struct color) {
-			to_range(0., 153. + 204. * cos((M_PI * (1. - 6. * x)) / (3. * 1.)), 255.),
-			to_range(0., 153. + 204. * cos((2. * M_PI * x) / 1.), 255.),
-			to_range(0., 153. + 204. * cos((M_PI * (1. + 6. * x)) / (3. * 1.)), 255.)
+			a1 * c1.r + a2 * c2.r,
+			a1 * c1.g + a2 * c2.g,
+			a1 * c1.b + a2 * c2.b
 		};
 	}
 	
