@@ -5,6 +5,7 @@ import os, shutil, subprocess, http.server
 
 script_dir = os.path.dirname(__file__)
 tile_size = 256
+max_iterations = 65000
 
 
 def command(*args):
@@ -13,6 +14,32 @@ def command(*args):
 	
 	if proc.returncode != 0:
 		raise Exception('Command failed: %s' % proc.returncode)
+
+
+def mandelbrot(image_name):
+	file_path = os.path.join(script_dir, 'cache', image_name + '.png')
+	
+	if not os.path.exists(file_path):
+		re = -2.
+		im = -2.
+		range = 4.
+		
+		for i in image_name:
+			range /= 2.
+			
+			if i in 'bd':
+				re += range
+			
+			if i in 'cd':
+				im += range
+		
+		temp_path = file_path + '~'
+		
+		os.makedirs(os.path.dirname(file_path), exist_ok = True)
+		command(os.path.join(script_dir, 'bin/mandelbrot'), temp_path, str(re), str(im), str(range), str(tile_size), str(max_iterations))
+		os.rename(temp_path, file_path)
+	
+	return file_path
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -33,26 +60,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 			self.end_headers()
 		else:
 			if len(path) == 2 and path[0] == 'mandelbrot':
-				file_path = os.path.join(script_dir, 'cache', path[1])
-				
-				if not os.path.exists(file_path):
-					re = -2.
-					im = -2.
-					range = 4.
-					
-					for i in os.path.splitext(path[1])[0]:
-						range /= 2.;
-						
-						if i in 'bd':
-							re += range
-						
-						if i in 'cd':
-							im += range
-					
-					temp_path = file_path + '~'
-					
-					command(os.path.join(script_dir, 'bin/mandelbrot'), temp_path, str(re), str(im), str(range), str(tile_size))
-					os.rename(temp_path, file_path)
+				file_path = mandelbrot(path[1])
 			else:
 				if path == []:
 					path = ['index.xhtml']

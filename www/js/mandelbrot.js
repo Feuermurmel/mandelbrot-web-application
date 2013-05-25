@@ -40,8 +40,8 @@ mandelbrot = function () {
 	}
 	
 	function indexToName(ind) {
-		var replace = [["a", "b"], ["c", "d"]]
-		var path = "";
+		var replace = [['a', 'b'], ['c', 'd']]
+		var path = '';
 		
 		for (var i = 0; i < ind.x.length; i += 1)
 			path += replace[ind.y[i]][ind.x[i]];
@@ -50,10 +50,10 @@ mandelbrot = function () {
 	}
 	
 	function indexFromName(name) {
-		var replace = { "a": [0, 0], "b": [1, 0], "c": [0, 1], "d": [1, 1] };
-		var index = { "x": [], "y": [] };
+		var replace = { 'a': [0, 0], 'b': [1, 0], 'c': [0, 1], 'd': [1, 1] };
+		var index = { 'x': [], 'y': [] };
 		
-		name.split("").map(function (v) {
+		name.split('').map(function (v) {
 			index.x.push(replace[v][0]);
 			index.y.push(replace[v][1]);
 		});
@@ -63,8 +63,8 @@ mandelbrot = function () {
 	
 	function indexToString(ind) {
 		return ind.map(function (v) {
-			return ["0", "1"][v];
-		}).join("");
+			return ['0', '1'][v];
+		}).join('');
 	}
 	
 	function indexToNumber(ind) {
@@ -80,41 +80,41 @@ mandelbrot = function () {
 	}
 	
 	return function (element) {
-		var offset = { "x": 0, "y": 0 }; // Pixel offset of the top left tile relative to the viewer div.
-		var index = { "x": [], "y": [] }; // Index of the top left tile.
-		var viewerWrapper = $(".wrapper", element);
-		var viewerSize = { "x": 0, "y": 0 };
+		var offset = { 'x': 0, 'y': 0 }; // Pixel offset of the top left tile relative to the viewer div.
+		var index = { 'x': [], 'y': [] }; // Index of the top left tile.
+		var viewerWrapper = $('.wrapper', element);
+		var viewerSize = { 'x': 0, 'y': 0 };
 		var tiles = { }; // Map for visible tiles from tile names to HTMLElements.
 		var dragStartOffset;
 		
 		var progress = Progress(function (p) {
 			if (p == 1)
-				document.title = "Mandelbrot"
+				document.title = 'Mandelbrot'
 			else
-				document.title = "Mandelbrot (" + Math.round(p * 100) + "%)"
+				document.title = 'Mandelbrot (' + Math.round(p * 100) + '%)'
 		});
 		
 		function updateHash() {
 			var offsetX = offset.x - viewerSize.x / 2;
 			var offsetY = offset.y - viewerSize.y / 2;
 			var hash = indexToName({
-				"x": indexAdd(index.x, Math.floor(-offsetX / tileSize)),
-				"y": indexAdd(index.y, Math.floor(-offsetY / tileSize))
+				'x': indexAdd(index.x, Math.floor(-offsetX / tileSize)),
+				'y': indexAdd(index.y, Math.floor(-offsetY / tileSize))
 			});
 			
 			Hash.update(hash);
 		};
 		
 		function updateFromHash(hash) {
-			var slice = hash.split("").map(function (v) {
-				if ("abcd".indexOf(v) < 0)
-					return "";
+			var slice = hash.split('').map(function (v) {
+				if ('abcd'.indexOf(v) < 0)
+					return '';
 				else
 					return v;
-			}).join("");
+			}).join('');
 			
-			if (slice == "") {
-				index = { "x": [1], "y": [1] };
+			if (slice == '') {
+				index = { 'x': [1], 'y': [1] };
 				setOffset(viewerSize.x / 2, viewerSize.y / 2);
 			} else {
 				index = indexFromName(slice);
@@ -124,8 +124,8 @@ mandelbrot = function () {
 		
 		function updateSize() {
 			viewerSize = {
-				"x": $(element).width(),
-				"y": $(element).height()
+				'x': $(element).width(),
+				'y': $(element).height()
 			};
 		};
 		
@@ -152,10 +152,10 @@ mandelbrot = function () {
 				var conts = [];
 				
 				$.each(nam, function (k, v) {
-					var x = "ac".indexOf(k.slice(-1)) < 0 ? v.x - factor : v.x;
-					var y = "ab".indexOf(k.slice(-1)) < 0 ? v.y - factor : v.y;
+					var x = 'ac'.indexOf(k.slice(-1)) < 0 ? v.x - factor : v.x;
+					var y = 'ab'.indexOf(k.slice(-1)) < 0 ? v.y - factor : v.y;
 					
-					if (k != "")
+					if (k != '')
 						names[k.slice(0, -1)] = { x: x, y: y };
 					
 					conts.push(function () {
@@ -168,7 +168,7 @@ mandelbrot = function () {
 							$(img).addClass('tile').load(function () {
 								progress.done(k);
 								$(img).css({ 'opacity': 1 });
-							}).attr("src", "mandelbrot/" + k + ".png");
+							}).attr('src', 'mandelbrot/' + k);
 							
 							viewerWrapper.append(img);
 						} else {
@@ -189,10 +189,10 @@ mandelbrot = function () {
 			};
 			
 			var visible = {
-				"xmin": -Math.ceil(offset.x / tileSize),
-				"ymin": -Math.ceil(offset.y / tileSize),
-				"xmax": Math.ceil((viewerSize.x - offset.x) / tileSize),
-				"ymax": Math.ceil((viewerSize.y - offset.y) / tileSize),
+				'xmin': -Math.ceil(offset.x / tileSize),
+				'ymin': -Math.ceil(offset.y / tileSize),
+				'xmax': Math.ceil((viewerSize.x - offset.x) / tileSize),
+				'ymax': Math.ceil((viewerSize.y - offset.y) / tileSize),
 			};
 			
 			for (var iy = visible.ymin; iy < visible.ymax; iy += 1) {
@@ -218,8 +218,8 @@ mandelbrot = function () {
 		// Zooms in by a factor of two around the center of the viewer.
 		function zoomIn() {
 			var indexOffset = {
-				"x": -Math.floor(offset.x / tileSize),
-				"y": -Math.floor(offset.y / tileSize)
+				'x': -Math.floor(offset.x / tileSize),
+				'y': -Math.floor(offset.y / tileSize)
 			};
 			
 			setOffset((offset.x + indexOffset.x * tileSize) * 2 - viewerSize.x / 2, (offset.y + indexOffset.y * tileSize) * 2 - viewerSize.y / 2);
@@ -233,8 +233,8 @@ mandelbrot = function () {
 		// Zooms out by a factor of two around the center of the viewer.
 		function zoomOut() {
 			var indexOffset = {
-				"x": index.x.pop(),
-				"y": index.y.pop()
+				'x': index.x.pop(),
+				'y': index.y.pop()
 			};
 			
 			setOffset((offset.x - indexOffset.x * tileSize + viewerSize.x / 2) / 2, (offset.y - indexOffset.y * tileSize + viewerSize.y / 2) / 2);
@@ -252,7 +252,7 @@ mandelbrot = function () {
 			
 			function setTimer(lastTime) {
 				timerRunning = true;
-				$(element).oneTime("50ms", function () {
+				$(element).oneTime('50ms', function () {
 					var time = (new Date()).getTime();
 					var timeDelta = (time - lastTime) / 1000;
 					var moveX = 0, moveY = 0;
@@ -285,7 +285,7 @@ mandelbrot = function () {
 				dir = directions[evt.which];
 				
 				if (dir != undefined) {
-					dir.pressed = evt.type == "keydown";
+					dir.pressed = evt.type == 'keydown';
 					
 					if (!timerRunning)
 						setTimer((new Date()).getTime());
@@ -297,18 +297,18 @@ mandelbrot = function () {
 		
 		function init() {
 			// setup
-			$(".plus div", element).click(function () {
+			$('.plus div', element).click(function () {
 				zoomIn();
 				updateVisible(true);
 				updateHash();
 			});
-			$(".minus div", element).click(function () {
+			$('.minus div', element).click(function () {
 				zoomOut();
 				updateVisible(true);
 				updateHash();
 			});
 			
-			$(element).bind("selectstart", function () {
+			$(element).bind('selectstart', function () {
 				return false;
 			});
 			
@@ -339,8 +339,8 @@ mandelbrot = function () {
 				updateHash();
 			});
 			
-			$(".controls", element).dblclick(function (evt) {
-				// So "double-clicking" on a control doesen't zoom in.
+			$('.controls', element).dblclick(function (evt) {
+				// So 'double-clicking' on a control doesen't zoom in.
 				evt.stopPropagation();
 			});
 			
