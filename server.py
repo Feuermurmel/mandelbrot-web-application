@@ -1,6 +1,6 @@
 #! /usr/bin/env python3.2
 
-import os, shutil, subprocess, http.server
+import sys, os, shutil, subprocess, http.server
 
 
 script_dir = os.path.dirname(__file__)
@@ -84,10 +84,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
 				self.end_headers()
 
 
-address = '', 8080
+def main(port = 8080):
+	address = '', int(port)
+	
+	server = http.server.HTTPServer(address, Handler)
+	
+	print('HTTP server is listening on {} ...'.format(address))
+	
+	server.serve_forever()
 
-server = http.server.HTTPServer(address, Handler)
 
-print('HTTP server is listening on {} ...'.format(address))
-
-server.serve_forever()
+main(*sys.argv[1:])
