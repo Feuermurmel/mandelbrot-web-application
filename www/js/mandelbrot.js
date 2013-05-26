@@ -9,243 +9,243 @@ mandelbrot = function () {
 	
 	function indexFixup(ind) {
 		if (ind.length > 1) {
-			var last = ind.pop();
+			var last = ind.pop()
 			
 			if (last != 0 && last != 1 && ind.length > 0) {
-				ind[ind.length - 1] += Math.floor(last / 2);
-				ind = indexFixup(ind);
+				ind[ind.length - 1] += Math.floor(last / 2)
+				ind = indexFixup(ind)
 			}
 			
-			ind.push(Math.abs(last % 2));
+			ind.push(Math.abs(last % 2))
 		}
 		
-		return ind;
+		return ind
 	}
 	
 	function indexAdd(ind, num) {
-		ind = ind.map(function (v) { return v; });
+		ind = ind.map(function (v) { return v; })
 		
 		if (ind.length > 0) {
-			ind[ind.length - 1] += num;
-			return indexFixup(ind);
+			ind[ind.length - 1] += num
+			return indexFixup(ind)
 		} else {
-			return ind;
+			return ind
 		}
-	};
+	}
 	
 	function indexValue(ind) {
 		return ind.reduce(function (s, v) {
-			return s * 2 + v;
-		}, 0);
+			return s * 2 + v
+		}, 0)
 	}
 	
 	function indexToName(ind) {
 		var replace = [['a', 'b'], ['c', 'd']]
-		var path = '';
+		var path = ''
 		
 		for (var i = 0; i < ind.x.length; i += 1)
-			path += replace[ind.y[i]][ind.x[i]];
+			path += replace[ind.y[i]][ind.x[i]]
 		
-		return path;
+		return path
 	}
 	
 	function indexFromName(name) {
-		var replace = { 'a': [0, 0], 'b': [1, 0], 'c': [0, 1], 'd': [1, 1] };
-		var index = { 'x': [], 'y': [] };
+		var replace = { 'a': [0, 0], 'b': [1, 0], 'c': [0, 1], 'd': [1, 1] }
+		var index = { 'x': [], 'y': [] }
 		
 		name.split('').map(function (v) {
-			index.x.push(replace[v][0]);
-			index.y.push(replace[v][1]);
-		});
+			index.x.push(replace[v][0])
+			index.y.push(replace[v][1])
+		})
 		
-		return index;
+		return index
 	}
 	
 	function indexToString(ind) {
 		return ind.map(function (v) {
-			return ['0', '1'][v];
-		}).join('');
+			return ['0', '1'][v]
+		}).join('')
 	}
 	
 	function indexToNumber(ind) {
 		function f(i) {
 			if (i == 0) {
-				return 0;
+				return 0
 			} else {
-				return ind[i - 1] + f(i - 1) * 2;
+				return ind[i - 1] + f(i - 1) * 2
 			}
 		}
 		
-		return f(ind.length);
+		return f(ind.length)
 	}
 	
 	return function (element) {
 		var offset = { 'x': 0, 'y': 0 }; // Pixel offset of the top left tile relative to the viewer div.
 		var index = { 'x': [], 'y': [] }; // Index of the top left tile.
-		var viewerWrapper = $('.wrapper', element);
-		var viewerSize = { 'x': 0, 'y': 0 };
+		var viewerWrapper = $('.wrapper', element)
+		var viewerSize = { 'x': 0, 'y': 0 }
 		var tiles = { }; // Map for visible tiles from tile names to HTMLElements.
-		var dragStartOffset;
+		var dragStartOffset
 		
 		var progress = Progress(function (p) {
 			if (p == 1)
 				document.title = 'Mandelbrot'
 			else
 				document.title = 'Mandelbrot (' + Math.round(p * 100) + '%)'
-		});
+		})
 		
 		function updateHash() {
-			var offsetX = offset.x - viewerSize.x / 2;
-			var offsetY = offset.y - viewerSize.y / 2;
+			var offsetX = offset.x - viewerSize.x / 2
+			var offsetY = offset.y - viewerSize.y / 2
 			var hash = indexToName({
 				'x': indexAdd(index.x, Math.floor(-offsetX / tileSize)),
 				'y': indexAdd(index.y, Math.floor(-offsetY / tileSize))
-			});
+			})
 			
-			Hash.update(hash);
-		};
+			Hash.update(hash)
+		}
 		
 		function updateFromHash(hash) {
 			var slice = hash.split('').map(function (v) {
 				if ('abcd'.indexOf(v) < 0)
-					return '';
+					return ''
 				else
-					return v;
-			}).join('');
+					return v
+			}).join('')
 			
 			if (slice == '') {
-				index = { 'x': [1], 'y': [1] };
-				setOffset(viewerSize.x / 2, viewerSize.y / 2);
+				index = { 'x': [1], 'y': [1] }
+				setOffset(viewerSize.x / 2, viewerSize.y / 2)
 			} else {
-				index = indexFromName(slice);
-				setOffset(Math.floor((viewerSize.x - tileSize) / 2), Math.floor((viewerSize.y - tileSize) / 2));
+				index = indexFromName(slice)
+				setOffset(Math.floor((viewerSize.x - tileSize) / 2), Math.floor((viewerSize.y - tileSize) / 2))
 			}
-		};
+		}
 		
 		function updateSize() {
 			viewerSize = {
 				'x': $(element).width(),
 				'y': $(element).height()
-			};
-		};
+			}
+		}
 		
 		function setOffset(x, y) {
-			offset.x = Math.floor(x);
-			offset.y = Math.floor(y);
+			offset.x = Math.floor(x)
+			offset.y = Math.floor(y)
 			
-			viewerWrapper[0].style.webkitTransform = cssFunction('translate3d', offset.x + 'px', offset.y + 'px', '0px');
-		};
+			viewerWrapper[0].style.webkitTransform = cssFunction('translate3d', offset.x + 'px', offset.y + 'px', '0px')
+		}
 		
 		function moveOffset(x, y) {
-			setOffset(offset.x + x, offset.y + y);
-		};
+			setOffset(offset.x + x, offset.y + y)
+		}
 		
 		// Adds new tiles and removes those, which aren't visible anymore.
 		function updateVisible() {
 			// TODO: Check that visible != that.visible.
-			var newTiles = { };
-			var names = { };
+			var newTiles = { }
+			var names = { }
 			
 			function createLayer(nam, level) {
-				var names = { };
-				var factor = Math.pow(2, level);
-				var conts = [];
+				var names = { }
+				var factor = Math.pow(2, level)
+				var conts = []
 				
 				$.each(nam, function (k, v) {
-					var x = 'ac'.indexOf(k.slice(-1)) < 0 ? v.x - factor : v.x;
-					var y = 'ab'.indexOf(k.slice(-1)) < 0 ? v.y - factor : v.y;
+					var x = 'ac'.indexOf(k.slice(-1)) < 0 ? v.x - factor : v.x
+					var y = 'ab'.indexOf(k.slice(-1)) < 0 ? v.y - factor : v.y
 					
 					if (k != '')
-						names[k.slice(0, -1)] = { x: x, y: y };
+						names[k.slice(0, -1)] = { x: x, y: y }
 					
 					conts.push(function () {
-						var img = tiles[k];
+						var img = tiles[k]
 						
 						if (img == undefined) {
-							img = new Image();
-							progress.add(k);
+							img = new Image()
+							progress.add(k)
 							
 							// TODO: Instead of ignoring errors on loading images, we should not try to load images outside the valid range.
 							$(img).addClass('tile').bind('load', function () {
-								progress.done(k);
-								$(img).css({ 'opacity': 1 });
+								progress.done(k)
+								$(img).css({ 'opacity': 1 })
 							}).bind('error', function () {
-								progress.done(k);
-							}).attr('src', 'mandelbrot/' + k);
+								progress.done(k)
+							}).attr('src', 'mandelbrot/' + k)
 							
-							viewerWrapper.append(img);
+							viewerWrapper.append(img)
 						} else {
-							delete tiles[k];
+							delete tiles[k]
 						}
 						
-						img.style.webkitTransform = cssFunction('translate3d', v.x * tileSize + 'px', v.y * tileSize + 'px', '0px') + cssFunction('scale3d', factor * tileSize / tileImageSize, factor * tileSize / tileImageSize, 1);
+						img.style.webkitTransform = cssFunction('translate3d', v.x * tileSize + 'px', v.y * tileSize + 'px', '0px') + cssFunction('scale3d', factor * tileSize / tileImageSize, factor * tileSize / tileImageSize, 1)
 						img.style.zIndex = -level
 						
-						newTiles[k] = img;
-					});
-				});
+						newTiles[k] = img
+					})
+				})
 				
 				if (level < numLayers - 1)
-					createLayer(names, level + 1);
+					createLayer(names, level + 1)
 				
-				conts.map(function (v) { v(); });
-			};
+				conts.map(function (v) { v(); })
+			}
 			
 			var visible = {
 				'xmin': -Math.ceil(offset.x / tileSize),
 				'ymin': -Math.ceil(offset.y / tileSize),
 				'xmax': Math.ceil((viewerSize.x - offset.x) / tileSize),
 				'ymax': Math.ceil((viewerSize.y - offset.y) / tileSize),
-			};
+			}
 			
 			for (var iy = visible.ymin; iy < visible.ymax; iy += 1) {
 				for (var ix = visible.xmin; ix < visible.xmax; ix += 1) {
-					var x = indexAdd(index.x, ix);
-					var y = indexAdd(index.y, iy);
+					var x = indexAdd(index.x, ix)
+					var y = indexAdd(index.y, iy)
 					
 					if (0 <= x[0] && x[0] <= 1 && 0 <= y[0] && y[0] <= 1)
-						names[indexToName({ x: x, y: y })] = { x: ix, y: iy };
+						names[indexToName({ x: x, y: y })] = { x: ix, y: iy }
 				}
 			}
 			
-			createLayer(names, 0);
+			createLayer(names, 0)
 			
 			lambda.map(tiles, function (k, v) {
-				progress.remove(k);
-				$(v).remove();
-			});
+				progress.remove(k)
+				$(v).remove()
+			})
 			
-			tiles = newTiles;
-		};
+			tiles = newTiles
+		}
 		
 		// Zooms in by a factor of two around the center of the viewer.
 		function zoomIn() {
 			var indexOffset = {
 				'x': -Math.floor(offset.x / tileSize),
 				'y': -Math.floor(offset.y / tileSize)
-			};
+			}
 			
-			setOffset((offset.x + indexOffset.x * tileSize) * 2 - viewerSize.x / 2, (offset.y + indexOffset.y * tileSize) * 2 - viewerSize.y / 2);
+			setOffset((offset.x + indexOffset.x * tileSize) * 2 - viewerSize.x / 2, (offset.y + indexOffset.y * tileSize) * 2 - viewerSize.y / 2)
 			
-			index.x = indexAdd(index.x, indexOffset.x);
-			index.y = indexAdd(index.y, indexOffset.y);
-			index.x.push(0);
-			index.y.push(0);
-		};
+			index.x = indexAdd(index.x, indexOffset.x)
+			index.y = indexAdd(index.y, indexOffset.y)
+			index.x.push(0)
+			index.y.push(0)
+		}
 		
 		// Zooms out by a factor of two around the center of the viewer.
 		function zoomOut() {
 			var indexOffset = {
 				'x': index.x.pop(),
 				'y': index.y.pop()
-			};
+			}
 			
-			setOffset((offset.x - indexOffset.x * tileSize + viewerSize.x / 2) / 2, (offset.y - indexOffset.y * tileSize + viewerSize.y / 2) / 2);
-		};
+			setOffset((offset.x - indexOffset.x * tileSize + viewerSize.x / 2) / 2, (offset.y - indexOffset.y * tileSize + viewerSize.y / 2) / 2)
+		}
 		
 		function registerKeyEvents(element) {
-			var timerRunning = false;
-			var timerTime = 0;
+			var timerRunning = false
+			var timerTime = 0
 			var directions = {
 				37: { x: 1, y: 0, pressed: false },
 				38: { x: 0, y: 1, pressed: false },
@@ -254,111 +254,111 @@ mandelbrot = function () {
 			}
 			
 			function setTimer(lastTime) {
-				timerRunning = true;
+				timerRunning = true
 				$(element).oneTime('50ms', function () {
-					var time = (new Date()).getTime();
-					var timeDelta = (time - lastTime) / 1000;
-					var moveX = 0, moveY = 0;
-					var delta = Math.round(120 - 100 / (timerTime + 1));
+					var time = (new Date()).getTime()
+					var timeDelta = (time - lastTime) / 1000
+					var moveX = 0, moveY = 0
+					var delta = Math.round(120 - 100 / (timerTime + 1))
 					
 					[37, 38, 39, 40].map(function (v) {
-						dir = directions[v];
+						dir = directions[v]
 						
 						if (dir.pressed) {
-							moveX += dir.x;
-							moveY += dir.y;
+							moveX += dir.x
+							moveY += dir.y
 						}
-					});
+					})
 					
 					if (moveX != 0 || moveY != 0) {
-						timerTime += timeDelta;
-						moveOffset(moveX * delta, moveY * delta);
-						setTimer(time);
-						updateVisible();
+						timerTime += timeDelta
+						moveOffset(moveX * delta, moveY * delta)
+						setTimer(time)
+						updateVisible()
 					} else {
-						updateHash();
-						updateVisible();
-						timerRunning = false;
-						timerTime = 0;
+						updateHash()
+						updateVisible()
+						timerRunning = false
+						timerTime = 0
 					}
-				});
+				})
 			}
 			
 			function handle(evt) {
-				dir = directions[evt.which];
+				dir = directions[evt.which]
 				
 				if (dir != undefined) {
-					dir.pressed = evt.type == 'keydown';
+					dir.pressed = evt.type == 'keydown'
 					
 					if (!timerRunning)
-						setTimer((new Date()).getTime());
+						setTimer((new Date()).getTime())
 				}
 			}
 			
-			$(element).keydown(handle).keyup(handle);
+			$(element).keydown(handle).keyup(handle)
 		}
 		
 		function init() {
 			// setup
 			$('.plus div', element).click(function () {
-				zoomIn();
-				updateVisible(true);
-				updateHash();
-			});
+				zoomIn()
+				updateVisible(true)
+				updateHash()
+			})
 			$('.minus div', element).click(function () {
-				zoomOut();
-				updateVisible(true);
-				updateHash();
-			});
+				zoomOut()
+				updateVisible(true)
+				updateHash()
+			})
 			
 			$(element).bind('selectstart', function () {
-				return false;
-			});
+				return false
+			})
 			
 			$(element).drag(function () {
-				dragStartOffset = { x: offset.x, y: offset.y };
+				dragStartOffset = { x: offset.x, y: offset.y }
 			}, function (evt) {
-				setOffset(dragStartOffset.x + evt.offsetX, dragStartOffset.y + evt.offsetY);
+				setOffset(dragStartOffset.x + evt.offsetX, dragStartOffset.y + evt.offsetY)
 			}, function (evt) {
-				dragStartOffset = null;
-				updateVisible();
-				updateHash();
-			});
+				dragStartOffset = null
+				updateVisible()
+				updateHash()
+			})
 			
-			registerKeyEvents(window);
+			registerKeyEvents(window)
 			
 			Hash.onUpdate(function (hash) {
-				updateFromHash(hash);
-				updateVisible(true);
-				updateHash();
-			});
+				updateFromHash(hash)
+				updateVisible(true)
+				updateHash()
+			})
 			
 			$(element).dblclick(function (evt) {
-				var offset = $(this).offset();
+				var offset = $(this).offset()
 				
-				moveOffset(viewerSize.x / 2 - (evt.pageX - offset.left), viewerSize.y / 2 - (evt.pageY - offset.top));
-				zoomIn();
-				updateVisible(true);
-				updateHash();
-			});
+				moveOffset(viewerSize.x / 2 - (evt.pageX - offset.left), viewerSize.y / 2 - (evt.pageY - offset.top))
+				zoomIn()
+				updateVisible(true)
+				updateHash()
+			})
 			
 			$('.controls', element).dblclick(function (evt) {
 				// So 'double-clicking' on a control doesen't zoom in.
-				evt.stopPropagation();
-			});
+				evt.stopPropagation()
+			})
 			
 			$(window).resize(function () {
-				updateSize();
-				updateVisible();
-				updateHash();
+				updateSize()
+				updateVisible()
+				updateHash()
 			})
 			
 			// initialisation
-			updateSize();
-			updateFromHash(document.location.hash);
-			updateVisible();
-		};
+			updateSize()
+			updateFromHash(document.location.hash)
+			updateVisible()
+		}
 		
-		init();
-	};
-} ();
+		init()
+	}
+} ()
