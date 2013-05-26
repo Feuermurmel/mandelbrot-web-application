@@ -165,9 +165,12 @@ mandelbrot = function () {
 							img = new Image();
 							progress.add(k);
 							
-							$(img).addClass('tile').load(function () {
+							// TODO: Instead of ignoring errors on loading images, we should not try to load images outside the valid range.
+							$(img).addClass('tile').bind('load', function () {
 								progress.done(k);
 								$(img).css({ 'opacity': 1 });
+							}).bind('error', function () {
+								progress.done(k);
 							}).attr('src', 'mandelbrot/' + k);
 							
 							viewerWrapper.append(img);
