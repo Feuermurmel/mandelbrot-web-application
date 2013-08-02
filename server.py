@@ -16,6 +16,12 @@ def command(*args):
 		raise Exception('Command failed: %s' % proc.returncode)
 
 
+def makedirs(path):
+	# os.makedirs sometimes tries to create a directory even if it already exists.
+	if not os.path.exists(path):
+		os.makedirs(path, exist_ok = True)
+
+
 def mandelbrot(image_name):
 	file_path = os.path.join(script_dir, 'cache', image_name + '.png')
 	
@@ -35,7 +41,7 @@ def mandelbrot(image_name):
 		
 		temp_path = file_path + '~'
 		
-		os.makedirs(os.path.dirname(file_path), exist_ok = True)
+		makedirs(os.path.dirname(file_path))
 		command(os.path.join(script_dir, 'bin/mandelbrot'), temp_path, str(re), str(im), str(range), str(tile_size), str(max_iterations))
 		os.rename(temp_path, file_path)
 	
