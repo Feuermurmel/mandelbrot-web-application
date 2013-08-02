@@ -1,6 +1,6 @@
 #! /usr/bin/env python3.2
 
-import sys, os, shutil, subprocess, http.server
+import sys, os, shutil, subprocess, socketserver, http.server
 
 
 script_dir = os.path.dirname(__file__)
@@ -90,10 +90,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
 				self.end_headers()
 
 
+class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
+	pass
+
+
 def main(port = 8080):
 	address = '', int(port)
 	
-	server = http.server.HTTPServer(address, Handler)
+	server = Server(address, Handler)
 	
 	print('HTTP server is listening on {} ...'.format(address))
 	
