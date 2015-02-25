@@ -8,6 +8,10 @@ tile_size = 256
 max_iterations = 65000
 
 
+def log(message, *args):
+	print(message.format(*args), file = sys.stderr)
+
+
 def command(*args):
 	proc = subprocess.Popen(args, stdin = subprocess.PIPE, stdout = subprocess.PIPE)
 	proc.communicate()
@@ -53,8 +57,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
 		'.js': 'application/javascript',
 		'.xhtml': 'application/xhtml+xml',
 		'.png': 'image/png',
-		'.css': 'text/css',
-		'.js': 'text/javascript' }
+		'.css': 'text/css' }
+	
+	def log_request(self, *args):
+		pass
 	
 	def do_GET(self):
 		path = [i for i in self.path.split('/') if i]
@@ -99,7 +105,7 @@ def main(port = 8080):
 	
 	server = Server(address, Handler)
 	
-	print('HTTP server is listening on {} ...'.format(address))
+	log('HTTP server is listening on {} ...', address)
 	
 	server.serve_forever()
 
