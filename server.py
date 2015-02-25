@@ -1,6 +1,6 @@
 #! /usr/bin/env python3.4
 
-import sys, os, shutil, subprocess, socketserver, http.server
+import sys, os, time, shutil, subprocess, socketserver, http.server
 
 
 script_dir = os.path.dirname(__file__)
@@ -26,30 +26,42 @@ def makedirs(path):
 		os.makedirs(path, exist_ok = True)
 
 
+def render_mandelbrot(image_name, path):
+	re = -2
+	im = -2
+	range = 4
+	
+	for i in image_name:
+		range /= 2
+		
+		if i in 'bd':
+			re += range
+		
+		if i in 'cd':
+			im += range
+	
+	temp_path = path + '~'
+	
+	makedirs(os.path.dirname(path))
+	command(os.path.join(script_dir, 'bin/mandelbrot'), temp_path, str(re), str(im), str(range), str(tile_size), str(max_iterations))
+	os.rename(temp_path, path)
+
+
 def mandelbrot(image_name):
-	file_path = os.path.join(script_dir, 'cache', image_name + '.png')
+	path = os.path.join(script_dir, 'cache', image_name + '.png')
 	
-	if not os.path.exists(file_path):
-		re = -2.
-		im = -2.
-		range = 4.
+	if not os.path.exists(path):
+		start_time = time.monotonic()
+
+		render_mandelbrot(image_name, path)
 		
-		for i in image_name:
-			range /= 2.
-			
-			if i in 'bd':
-				re += range
-			
-			if i in 'cd':
-				im += range
+		end_time = time.monotonic()
 		
-		temp_path = file_path + '~'
-		
-		makedirs(os.path.dirname(file_path))
-		command(os.path.join(script_dir, 'bin/mandelbrot'), temp_path, str(re), str(im), str(range), str(tile_size), str(max_iterations))
-		os.rename(temp_path, file_path)
+		log('Rendered image {} in {:.2f} s.', image_name, end_time - start_time)
+	else:
+		log('Returning image {} from cache.', image_name)
 	
-	return file_path
+	return path
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
