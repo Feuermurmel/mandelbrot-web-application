@@ -97,7 +97,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
-	pass
+	def handle_error(self, request, client_address):
+		try:
+			raise
+		except ConnectionError as e:
+			log('Error on connection from {}: {}', client_address, e)
+		except:
+			sys.excepthook(*sys.exc_info())
+			self.shutdown()
 
 
 def main(port = 8080):
